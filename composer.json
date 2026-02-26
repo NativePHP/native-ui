@@ -1,0 +1,42 @@
+{
+    "name": "nativephp/compose-ui",
+    "description": "A NativePHP Mobile plugin",
+    "type": "nativephp-ui-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "you@example.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "nativephp/mobile": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nativephp\\ComposeUi\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Nativephp\\ComposeUi\\ComposeUIServiceProvider"
+            ]
+        },
+        "nativephp": {
+            "manifest": "nativephp.json"
+        }
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0"
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

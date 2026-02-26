@@ -1,0 +1,181 @@
+{
+    "name": "nativephp/compose-ui",
+    "version": "1.0.0",
+    "description": "Material3 Compose UI components for NativePHP Mobile",
+    "namespace": "ComposeUI",
+    "platforms": [
+        "android",
+        "ios"
+    ],
+    "components": [
+        {
+            "type": "button",
+            "element": "Nativephp\\ComposeUi\\Elements\\Button",
+            "blade": "Nativephp\\ComposeUi\\Components\\Button",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ButtonRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "text",
+            "element": "Nativephp\\ComposeUi\\Elements\\Text",
+            "blade": "Nativephp\\ComposeUi\\Components\\Text",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.TextRenderer",
+            "ios_renderer": "TextRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "spacer",
+            "element": "Nativephp\\ComposeUi\\Elements\\Spacer",
+            "blade": "Nativephp\\ComposeUi\\Components\\Spacer",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.SpacerRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "divider",
+            "element": "Nativephp\\ComposeUi\\Elements\\Divider",
+            "blade": "Nativephp\\ComposeUi\\Components\\Divider",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.DividerRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "image",
+            "element": "Nativephp\\ComposeUi\\Elements\\Image",
+            "blade": "Nativephp\\ComposeUi\\Components\\Image",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ImageRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "progress_bar",
+            "element": "Nativephp\\ComposeUi\\Elements\\ProgressBar",
+            "blade": "Nativephp\\ComposeUi\\Components\\ProgressBar",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ProgressBarRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "activity_indicator",
+            "element": "Nativephp\\ComposeUi\\Elements\\ActivityIndicator",
+            "blade": "Nativephp\\ComposeUi\\Components\\ActivityIndicator",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ActivityIndicatorRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "icon",
+            "element": "Nativephp\\ComposeUi\\Elements\\Icon",
+            "blade": "Nativephp\\ComposeUi\\Components\\Icon",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.IconRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "text_input",
+            "element": "Nativephp\\ComposeUi\\Elements\\TextInput",
+            "blade": "Nativephp\\ComposeUi\\Components\\TextInput",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.TextInputRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "toggle",
+            "element": "Nativephp\\ComposeUi\\Elements\\Toggle",
+            "blade": "Nativephp\\ComposeUi\\Components\\Toggle",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ToggleRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "checkbox",
+            "element": "Nativephp\\ComposeUi\\Elements\\Checkbox",
+            "blade": "Nativephp\\ComposeUi\\Components\\Checkbox",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.CheckboxRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "slider",
+            "element": "Nativephp\\ComposeUi\\Elements\\Slider",
+            "blade": "Nativephp\\ComposeUi\\Components\\Slider",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.SliderRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "select",
+            "element": "Nativephp\\ComposeUi\\Elements\\Select",
+            "blade": "Nativephp\\ComposeUi\\Components\\Select",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.SelectRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "radio_group",
+            "element": "Nativephp\\ComposeUi\\Elements\\RadioGroup",
+            "blade": "Nativephp\\ComposeUi\\Components\\RadioGroup",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.RadioGroupRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "radio",
+            "element": "Nativephp\\ComposeUi\\Elements\\Radio",
+            "blade": "Nativephp\\ComposeUi\\Components\\Radio",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.RadioRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "badge",
+            "element": "Nativephp\\ComposeUi\\Elements\\Badge",
+            "blade": "Nativephp\\ComposeUi\\Components\\Badge",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.BadgeRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "card",
+            "element": "Nativephp\\ComposeUi\\Elements\\Card",
+            "blade": "Nativephp\\ComposeUi\\Components\\Card",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.CardRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "chip",
+            "element": "Nativephp\\ComposeUi\\Elements\\Chip",
+            "blade": "Nativephp\\ComposeUi\\Components\\Chip",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ChipRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "list_item",
+            "element": "Nativephp\\ComposeUi\\Elements\\ListItem",
+            "blade": "Nativephp\\ComposeUi\\Components\\ListItem",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ListItemRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "tab_row",
+            "element": "Nativephp\\ComposeUi\\Elements\\TabRow",
+            "blade": "Nativephp\\ComposeUi\\Components\\TabRow",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.TabRowRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "tab",
+            "element": "Nativephp\\ComposeUi\\Elements\\Tab",
+            "blade": "Nativephp\\ComposeUi\\Components\\Tab",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.TabRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "bottom_sheet",
+            "element": "Nativephp\\ComposeUi\\Elements\\BottomSheet",
+            "blade": "Nativephp\\ComposeUi\\Components\\BottomSheet",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.BottomSheetRenderer",
+            "self_closing": false
+        }
+    ],
+    "android": {
+        "dependencies": {
+            "implementation": [
+                "io.coil-kt.coil3:coil-compose:3.1.0",
+                "io.coil-kt.coil3:coil-network-okhttp:3.1.0"
+            ]
+        }
+    },
+    "ios": {
+        "dependencies": {
+            "swift_packages": [],
+            "pods": []
+        }
+    }
+}
