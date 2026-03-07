@@ -32,6 +32,12 @@ class Slider extends Element
         if (isset($attrs['step'])) {
             $this->step((float) $attrs['step']);
         }
+        if (isset($attrs['color'])) {
+            $this->color($attrs['color']);
+        }
+        if (isset($attrs['trackColor'])) {
+            $this->trackColor($attrs['trackColor']);
+        }
         if (! empty($attrs['disabled'])) {
             $this->disabled();
         }
@@ -61,6 +67,20 @@ class Slider extends Element
     public function step(float $val): static
     {
         $this->sliderProps['step'] = $val;
+
+        return $this;
+    }
+
+    public function color(string $color): static
+    {
+        $this->sliderProps['color'] = $color;
+
+        return $this;
+    }
+
+    public function trackColor(string $color): static
+    {
+        $this->sliderProps['track_color'] = $color;
 
         return $this;
     }

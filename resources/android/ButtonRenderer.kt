@@ -33,12 +33,14 @@ object ButtonRenderer {
         val color = p.getColor("color", 0xFF6200EE.toInt())
         val labelColor = p.getColor("label_color", 0xFFFFFFFF.toInt())
         val fontSize = p.getFloat("font_size", 0f)
+        val cornerRadius = node.style?.borderRadius?.dp ?: 20.dp
 
         if (longPressCbId != 0) {
+            val shape = RoundedCornerShape(cornerRadius)
             Box(
                 modifier = modifier
                     .defaultMinSize(minWidth = 58.dp, minHeight = 40.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(shape)
                     .background(Color(color))
                     .pointerInput(pressCbId, longPressCbId) {
                         detectTapGestures(
@@ -52,18 +54,19 @@ object ButtonRenderer {
                             }
                         )
                     }
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = label,
                     color = Color(labelColor),
                     fontWeight = FontWeight.Medium,
-                    fontSize = if (fontSize > 0f) fontSize.sp else 14.sp,
+                    fontSize = if (fontSize > 0f) fontSize.sp else TextUnit.Unspecified,
                     letterSpacing = 0.1.sp
                 )
             }
         } else {
+            val shape = RoundedCornerShape(cornerRadius)
             Button(
                 onClick = {
                     if (pressCbId != 0) {
@@ -72,6 +75,7 @@ object ButtonRenderer {
                 },
                 modifier = modifier,
                 enabled = !disabled,
+                shape = shape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(color),
                     contentColor = Color(labelColor)

@@ -162,6 +162,20 @@
             "blade": "Nativephp\\ComposeUi\\Components\\BottomSheet",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.BottomSheetRenderer",
             "self_closing": false
+        },
+        {
+            "type": "button_group",
+            "element": "Nativephp\\ComposeUi\\Elements\\ButtonGroup",
+            "blade": "Nativephp\\ComposeUi\\Components\\ButtonGroup",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ButtonGroupRenderer",
+            "self_closing": true
+        },
+        {
+            "type": "carousel",
+            "element": "Nativephp\\ComposeUi\\Elements\\Carousel",
+            "blade": "Nativephp\\ComposeUi\\Components\\Carousel",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.CarouselRenderer",
+            "self_closing": false
         }
     ],
     "android": {
