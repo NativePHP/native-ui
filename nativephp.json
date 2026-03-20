@@ -16,35 +16,6 @@
             "self_closing": true
         },
         {
-            "type": "text",
-            "element": "Nativephp\\ComposeUi\\Elements\\Text",
-            "blade": "Nativephp\\ComposeUi\\Components\\Text",
-            "android_renderer": "com.nativephp.plugins.compose_ui.ui.TextRenderer",
-            "ios_renderer": "TextRenderer",
-            "self_closing": false
-        },
-        {
-            "type": "spacer",
-            "element": "Nativephp\\ComposeUi\\Elements\\Spacer",
-            "blade": "Nativephp\\ComposeUi\\Components\\Spacer",
-            "android_renderer": "com.nativephp.plugins.compose_ui.ui.SpacerRenderer",
-            "self_closing": true
-        },
-        {
-            "type": "divider",
-            "element": "Nativephp\\ComposeUi\\Elements\\Divider",
-            "blade": "Nativephp\\ComposeUi\\Components\\Divider",
-            "android_renderer": "com.nativephp.plugins.compose_ui.ui.DividerRenderer",
-            "self_closing": true
-        },
-        {
-            "type": "image",
-            "element": "Nativephp\\ComposeUi\\Elements\\Image",
-            "blade": "Nativephp\\ComposeUi\\Components\\Image",
-            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ImageRenderer",
-            "self_closing": true
-        },
-        {
             "type": "progress_bar",
             "element": "Nativephp\\ComposeUi\\Elements\\ProgressBar",
             "blade": "Nativephp\\ComposeUi\\Components\\ProgressBar",
@@ -179,6 +150,7 @@
         }
     ],
     "android": {
+        "min_version": 26,
         "dependencies": {
             "implementation": [
                 "io.coil-kt.coil3:coil-compose:3.1.0",
