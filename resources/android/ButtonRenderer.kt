@@ -1,26 +1,22 @@
 package com.nativephp.plugins.compose_ui.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nativephp.mobile.ui.nativerender.NativeUIBridge
 import com.nativephp.mobile.ui.nativerender.NativeUINode
+import com.nativephp.mobile.ui.nativerender.argbToComposeColor
 
 object ButtonRenderer {
     @Composable
@@ -30,62 +26,41 @@ object ButtonRenderer {
         val pressCbId = p.getCallbackId("on_press").let { if (it != 0) it else node.onPress }
         val longPressCbId = node.onLongPress
         val disabled = p.getBool("disabled")
-        val color = p.getColor("color", 0xFF6200EE.toInt())
         val labelColor = p.getColor("label_color", 0xFFFFFFFF.toInt())
         val fontSize = p.getFloat("font_size", 0f)
-        val cornerRadius = node.style?.borderRadius?.dp ?: 20.dp
 
-        if (longPressCbId != 0) {
-            val shape = RoundedCornerShape(cornerRadius)
-            Box(
-                modifier = modifier
-                    .defaultMinSize(minWidth = 58.dp, minHeight = 40.dp)
-                    .clip(shape)
-                    .background(Color(color))
-                    .pointerInput(pressCbId, longPressCbId) {
-                        detectTapGestures(
-                            onTap = {
-                                if (pressCbId != 0) {
-                                    NativeUIBridge.sendPressEvent(pressCbId, node.id)
-                                }
-                            },
-                            onLongPress = {
-                                NativeUIBridge.sendLongPressEvent(longPressCbId, node.id)
-                            }
-                        )
-                    }
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = label,
-                    color = Color(labelColor),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = if (fontSize > 0f) fontSize.sp else TextUnit.Unspecified,
-                    letterSpacing = 0.1.sp
+        // Background, border radius, and shape come from nodeStyle via the modifier.
+        // We just render centered text inside.
+        Box(
+            modifier = modifier
+                .alpha(if (disabled) 0.5f else 1.0f)
+                .then(
+                    if (!disabled && (pressCbId != 0 || longPressCbId != 0)) {
+                        Modifier.pointerInput(pressCbId, longPressCbId) {
+                            detectTapGestures(
+                                onTap = {
+                                    if (pressCbId != 0) {
+                                        NativeUIBridge.sendPressEvent(pressCbId, node.id)
+                                    }
+                                },
+                                onLongPress = if (longPressCbId != 0) {
+                                    { NativeUIBridge.sendLongPressEvent(longPressCbId, node.id) }
+                                } else null
+                            )
+                        }
+                    } else Modifier
                 )
-            }
-        } else {
-            val shape = RoundedCornerShape(cornerRadius)
-            Button(
-                onClick = {
-                    if (pressCbId != 0) {
-                        NativeUIBridge.sendPressEvent(pressCbId, node.id)
-                    }
-                },
-                modifier = modifier,
-                enabled = !disabled,
-                shape = shape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(color),
-                    contentColor = Color(labelColor)
-                )
-            ) {
-                Text(
-                    text = label,
-                    fontSize = if (fontSize > 0f) fontSize.sp else TextUnit.Unspecified
-                )
-            }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label,
+                color = argbToComposeColor(labelColor),
+                fontWeight = FontWeight.Medium,
+                fontSize = if (fontSize > 0f) fontSize.sp else TextUnit.Unspecified,
+                textAlign = TextAlign.Center,
+                letterSpacing = 0.1.sp
+            )
         }
     }
 }
