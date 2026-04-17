@@ -11,6 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.nativephp.mobile.ui.nativerender.*
 
@@ -66,6 +69,10 @@ object ScrollViewRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
         val horizontal = node.props.getBool("horizontal")
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val scrollModifier = modifier.pointerInput(Unit) {
+            detectVerticalDragGestures(onDragStart = { keyboardController?.hide() }) { _, _ -> }
+        }
 
         if (horizontal) {
             LazyRow(modifier = modifier) {
@@ -74,7 +81,7 @@ object ScrollViewRenderer {
                 }
             }
         } else {
-            LazyColumn(modifier = modifier) {
+            LazyColumn(modifier = scrollModifier) {
                 items(node.children, key = { it.id }) { child ->
                     NodeView(node = child)
                 }

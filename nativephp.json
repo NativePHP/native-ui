@@ -13,6 +13,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Text",
             "blade": "Native\\Mobile\\Edge\\Components\\Text",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.TextRenderer",
+            "ios_renderer": "ComposeUITextRenderer",
             "self_closing": true
         },
         {
@@ -20,6 +21,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Image",
             "blade": "Native\\Mobile\\Edge\\Components\\Image",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ImageRenderer",
+            "ios_renderer": "ComposeUIImageRenderer",
             "self_closing": true
         },
         {
@@ -27,6 +29,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Column",
             "blade": "Native\\Mobile\\Edge\\Components\\Column",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ColumnRenderer",
+            "ios_renderer": "ComposeUIColumnRenderer",
             "self_closing": false
         },
         {
@@ -34,6 +37,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Row",
             "blade": "Native\\Mobile\\Edge\\Components\\Row",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.RowRenderer",
+            "ios_renderer": "ComposeUIRowRenderer",
             "self_closing": false
         },
         {
@@ -41,6 +45,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Stack",
             "blade": "Native\\Mobile\\Edge\\Components\\Stack",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.StackRenderer",
+            "ios_renderer": "ComposeUIStackRenderer",
             "self_closing": false
         },
         {
@@ -48,6 +53,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\ScrollView",
             "blade": "Native\\Mobile\\Edge\\Components\\ScrollView",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ScrollViewRenderer",
+            "ios_renderer": "ComposeUIScrollViewRenderer",
             "self_closing": false
         },
         {
@@ -55,6 +61,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Pressable",
             "blade": "Native\\Mobile\\Edge\\Components\\Pressable",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.PressableRenderer",
+            "ios_renderer": "ComposeUIPressableRenderer",
             "self_closing": false
         },
         {
@@ -62,6 +69,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Canvas",
             "blade": "Native\\Mobile\\Edge\\Components\\Canvas",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.CanvasRenderer",
+            "ios_renderer": "ComposeUICanvasRenderer",
             "self_closing": false
         },
         {
@@ -69,6 +77,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Spacer",
             "blade": "Native\\Mobile\\Edge\\Components\\Spacer",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.SpacerRenderer",
+            "ios_renderer": "ComposeUISpacerRenderer",
             "self_closing": true
         },
         {
@@ -76,6 +85,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Divider",
             "blade": "Native\\Mobile\\Edge\\Components\\Divider",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.DividerRenderer",
+            "ios_renderer": "ComposeUIDividerRenderer",
             "self_closing": true
         },
         {
@@ -83,6 +93,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Rect",
             "blade": "Native\\Mobile\\Edge\\Components\\Rect",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.RectRenderer",
+            "ios_renderer": "ComposeUIRectRenderer",
             "self_closing": true
         },
         {
@@ -90,6 +101,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Circle",
             "blade": "Native\\Mobile\\Edge\\Components\\Circle",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.CircleRenderer",
+            "ios_renderer": "ComposeUICircleRenderer",
             "self_closing": true
         },
         {
@@ -97,6 +109,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\Line",
             "blade": "Native\\Mobile\\Edge\\Components\\Line",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.LineRenderer",
+            "ios_renderer": "ComposeUILineRenderer",
             "self_closing": true
         },
         {
@@ -104,6 +117,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\TopBar",
             "blade": "Native\\Mobile\\Edge\\Components\\TopBar",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.TopBarRenderer",
+            "ios_renderer": "ComposeUITopBarRenderer",
             "self_closing": false
         },
         {
@@ -111,6 +125,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\TopBarAction",
             "blade": "Native\\Mobile\\Edge\\Components\\TopBarAction",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.EmptyRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -118,6 +133,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\BottomNav",
             "blade": "Native\\Mobile\\Edge\\Components\\BottomNav",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.BottomNavRenderer",
+            "ios_renderer": "ComposeUIBottomNavRenderer",
             "self_closing": false
         },
         {
@@ -125,6 +141,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\BottomNavItem",
             "blade": "Native\\Mobile\\Edge\\Components\\BottomNavItem",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.EmptyRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -132,6 +149,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\SideNav",
             "blade": "Native\\Mobile\\Edge\\Components\\SideNav",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.SideNavRenderer",
+            "ios_renderer": "ComposeUISideNavRenderer",
             "self_closing": false
         },
         {
@@ -139,6 +157,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\SideNavItem",
             "blade": "Native\\Mobile\\Edge\\Components\\SideNavItem",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.EmptyRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -146,6 +165,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\SideNavGroup",
             "blade": "Native\\Mobile\\Edge\\Components\\SideNavGroup",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.EmptyRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": false
         },
         {
@@ -153,6 +173,7 @@
             "element": "Native\\Mobile\\Edge\\Elements\\SideNavHeader",
             "blade": "Native\\Mobile\\Edge\\Components\\SideNavHeader",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.EmptyRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -160,13 +181,31 @@
             "element": "Native\\Mobile\\Edge\\Elements\\HorizontalDivider",
             "blade": "Native\\Mobile\\Edge\\Components\\HorizontalDivider",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.DividerRenderer",
+            "ios_renderer": "ComposeUIDividerRenderer",
             "self_closing": true
+        },
+        {
+            "type": "list",
+            "element": "Nativephp\\ComposeUi\\Elements\\NativeList",
+            "blade": "Nativephp\\ComposeUi\\Components\\NativeList",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ListRenderer",
+            "ios_renderer": "ComposeUIListRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "modal",
+            "element": "Nativephp\\ComposeUi\\Elements\\Modal",
+            "blade": "Nativephp\\ComposeUi\\Components\\Modal",
+            "android_renderer": "com.nativephp.plugins.compose_ui.ui.ModalRenderer",
+            "ios_renderer": "ComposeUIModalRenderer",
+            "self_closing": false
         },
         {
             "type": "button",
             "element": "Nativephp\\ComposeUi\\Elements\\Button",
             "blade": "Nativephp\\ComposeUi\\Components\\Button",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ButtonRenderer",
+            "ios_renderer": "ComposeUIButtonRenderer",
             "self_closing": true
         },
         {
@@ -174,6 +213,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\ProgressBar",
             "blade": "Nativephp\\ComposeUi\\Components\\ProgressBar",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ProgressBarRenderer",
+            "ios_renderer": "ComposeUIProgressBarRenderer",
             "self_closing": true
         },
         {
@@ -181,6 +221,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\ActivityIndicator",
             "blade": "Nativephp\\ComposeUi\\Components\\ActivityIndicator",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ActivityIndicatorRenderer",
+            "ios_renderer": "ComposeUIActivityIndicatorRenderer",
             "self_closing": true
         },
         {
@@ -188,6 +229,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Icon",
             "blade": "Nativephp\\ComposeUi\\Components\\Icon",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.IconRenderer",
+            "ios_renderer": "ComposeUIIconRenderer",
             "self_closing": true
         },
         {
@@ -195,6 +237,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\TextInput",
             "blade": "Nativephp\\ComposeUi\\Components\\TextInput",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.TextInputRenderer",
+            "ios_renderer": "ComposeUITextInputRenderer",
             "self_closing": true
         },
         {
@@ -202,6 +245,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Toggle",
             "blade": "Nativephp\\ComposeUi\\Components\\Toggle",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ToggleRenderer",
+            "ios_renderer": "ComposeUIToggleRenderer",
             "self_closing": true
         },
         {
@@ -209,6 +253,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Checkbox",
             "blade": "Nativephp\\ComposeUi\\Components\\Checkbox",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.CheckboxRenderer",
+            "ios_renderer": "ComposeUICheckboxRenderer",
             "self_closing": true
         },
         {
@@ -216,6 +261,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Slider",
             "blade": "Nativephp\\ComposeUi\\Components\\Slider",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.SliderRenderer",
+            "ios_renderer": "ComposeUISliderRenderer",
             "self_closing": true
         },
         {
@@ -223,6 +269,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Select",
             "blade": "Nativephp\\ComposeUi\\Components\\Select",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.SelectRenderer",
+            "ios_renderer": "ComposeUISelectRenderer",
             "self_closing": true
         },
         {
@@ -230,6 +277,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\RadioGroup",
             "blade": "Nativephp\\ComposeUi\\Components\\RadioGroup",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.RadioGroupRenderer",
+            "ios_renderer": "ComposeUIRadioGroupRenderer",
             "self_closing": false
         },
         {
@@ -237,6 +285,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Radio",
             "blade": "Nativephp\\ComposeUi\\Components\\Radio",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.RadioRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -244,6 +293,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Badge",
             "blade": "Nativephp\\ComposeUi\\Components\\Badge",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.BadgeRenderer",
+            "ios_renderer": "ComposeUIBadgeRenderer",
             "self_closing": true
         },
         {
@@ -251,6 +301,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Card",
             "blade": "Nativephp\\ComposeUi\\Components\\Card",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.CardRenderer",
+            "ios_renderer": "ComposeUICardRenderer",
             "self_closing": false
         },
         {
@@ -258,6 +309,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Chip",
             "blade": "Nativephp\\ComposeUi\\Components\\Chip",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ChipRenderer",
+            "ios_renderer": "ComposeUIChipRenderer",
             "self_closing": true
         },
         {
@@ -265,6 +317,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\ListItem",
             "blade": "Nativephp\\ComposeUi\\Components\\ListItem",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ListItemRenderer",
+            "ios_renderer": "ComposeUIListItemRenderer",
             "self_closing": true
         },
         {
@@ -272,6 +325,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\TabRow",
             "blade": "Nativephp\\ComposeUi\\Components\\TabRow",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.TabRowRenderer",
+            "ios_renderer": "ComposeUITabRowRenderer",
             "self_closing": false
         },
         {
@@ -279,6 +333,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Tab",
             "blade": "Nativephp\\ComposeUi\\Components\\Tab",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.TabRenderer",
+            "ios_renderer": "ComposeUIEmptyRenderer",
             "self_closing": true
         },
         {
@@ -286,6 +341,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\BottomSheet",
             "blade": "Nativephp\\ComposeUi\\Components\\BottomSheet",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.BottomSheetRenderer",
+            "ios_renderer": "ComposeUIBottomSheetRenderer",
             "self_closing": false
         },
         {
@@ -293,6 +349,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\ButtonGroup",
             "blade": "Nativephp\\ComposeUi\\Components\\ButtonGroup",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.ButtonGroupRenderer",
+            "ios_renderer": "ComposeUIButtonGroupRenderer",
             "self_closing": true
         },
         {
@@ -300,6 +357,7 @@
             "element": "Nativephp\\ComposeUi\\Elements\\Carousel",
             "blade": "Nativephp\\ComposeUi\\Components\\Carousel",
             "android_renderer": "com.nativephp.plugins.compose_ui.ui.CarouselRenderer",
+            "ios_renderer": "ComposeUICarouselRenderer",
             "self_closing": false
         }
     ],

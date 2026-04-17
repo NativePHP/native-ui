@@ -17,6 +17,8 @@ class ListItem extends Element
 
     protected ?string $trailingPressCallback = null;
 
+    protected ?string $swipeDeleteCallback = null;
+
     public static function make(string $headline = ''): static
     {
         $el = new static;
@@ -111,6 +113,18 @@ class ListItem extends Element
         if (isset($attrs['disabled'])) {
             $this->disabled((bool) $attrs['disabled']);
         }
+
+        // Swipe actions
+        if (isset($attrs['on-swipe-delete']) || isset($attrs['onSwipeDelete'])) {
+            $this->onSwipeDelete($attrs['on-swipe-delete'] ?? $attrs['onSwipeDelete']);
+        }
+    }
+
+    public function onSwipeDelete(string $method): static
+    {
+        $this->swipeDeleteCallback = $method;
+
+        return $this;
     }
 
     // ── Text content ─────────────────────────────────
@@ -335,6 +349,9 @@ class ListItem extends Element
         }
         if ($this->trailingPressCallback !== null) {
             $props['on_trailing_press'] = $registry->register($this->trailingPressCallback);
+        }
+        if ($this->swipeDeleteCallback !== null) {
+            $props['on_swipe_delete'] = $registry->register($this->swipeDeleteCallback);
         }
 
         return $props;

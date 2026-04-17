@@ -23,11 +23,36 @@ class BottomSheet extends Element
         if (isset($attrs['visible'])) {
             $this->visible((bool) $attrs['visible']);
         }
+        if (isset($attrs['detents'])) {
+            $this->detents($attrs['detents']);
+        }
+        if (isset($attrs['background-color']) || isset($attrs['backgroundColor'])) {
+            $this->backgroundColor($attrs['background-color'] ?? $attrs['backgroundColor']);
+        }
+    }
+
+    public function backgroundColor(string $color): static
+    {
+        $this->sheetProps['background_color'] = $color;
+
+        return $this;
     }
 
     public function visible(bool $value = true): static
     {
         $this->sheetProps['visible'] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Set allowed sheet heights.
+     * Accepts: "small", "medium", "large", "full", or comma-separated like "medium,large"
+     * Also accepts a float (0.0-1.0) for a custom fraction of screen height.
+     */
+    public function detents(string $detents): static
+    {
+        $this->sheetProps['detents'] = $detents;
 
         return $this;
     }
