@@ -1,4 +1,4 @@
-package com.nativephp.plugins.compose_ui.ui
+package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
@@ -8,67 +8,93 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.nativephp.mobile.ui.nativerender.NativeUIBridge
 import com.nativephp.mobile.ui.nativerender.NativeUINode
-import com.nativephp.mobile.ui.nativerender.argbToComposeColor
+import com.nativephp.plugins.native_ui.NativeUITheme
 
+/**
+ * Material3 Switch renderer.
+ *
+ * Binary on/off with echo-prevention (plan K). Theme-sourced colors — no
+ * per-instance tint/label color overrides (Model 3). When `label` is set,
+ * renders as a label-left / switch-right row.
+ */
 object ToggleRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
         val p = node.props
-        val label = p.getString("label")
-        val initialValue = p.getBool("value")
-        val onChangeCb = p.getCallbackId("on_change")
-        val disabled = p.getBool("disabled")
+        val label       = p.getString("label")
+        val serverValue = p.getBool("value")
+        val onChangeCb  = p.getCallbackId("on_change")
+        val disabled    = p.getBool("disabled")
+        val a11yLabel   = p.getString("a11y_label")
+        val a11yHint    = p.getString("a11y_hint")
 
-        var checked by remember(node.id, initialValue) { mutableStateOf(initialValue) }
+        val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
 
-        // Tint from style bgColor
-        val tintArgb = node.style?.bgColor ?: 0
-        val tintAlpha = (tintArgb.toLong() and 0xFF000000L) ushr 24
-        val tintColor: Color? = if (tintArgb != 0 && tintAlpha != 0L) argbToComposeColor(tintArgb) else null
+        var checked by remember(node.id) { mutableStateOf(serverValue) }
+        var lastSentValue by remember(node.id) { mutableStateOf(serverValue) }
 
-        val colors = if (tintColor != null) {
-            SwitchDefaults.colors(
-                checkedThumbColor = tintColor,
-                checkedTrackColor = tintColor.copy(alpha = 0.5f)
-            )
-        } else SwitchDefaults.colors()
-
-        val onChanged = { newValue: Boolean ->
-            checked = newValue
-            if (onChangeCb != 0) {
-                NativeUIBridge.sendToggleChangeEvent(onChangeCb, node.id, newValue)
+        // Echo-prevention — accept programmatic updates, ignore echoes of our
+        // own commits.
+        LaunchedEffect(serverValue) {
+            if (serverValue != lastSentValue) {
+                checked = serverValue
+                lastSentValue = serverValue
             }
         }
 
-        if (label.isNotEmpty()) {
-            val isDark = isSystemInDarkTheme()
-            val darkColor = if (isDark) p.getColor("dark_color", 0) else 0
-            val labelArgb = p.getColor("label_color", 0)
-            val colorArgb = p.getColor("color", 0)
-            val textColor = when {
-                darkColor != 0 -> argbToComposeColor(darkColor)
-                labelArgb != 0 -> argbToComposeColor(labelArgb)
-                colorArgb != 0 -> argbToComposeColor(colorArgb)
-                else -> Color.Unspecified
-            }
+        val colors = SwitchDefaults.colors(
+            checkedThumbColor = theme.onPrimary,
+            checkedTrackColor = theme.primary,
+            checkedBorderColor = theme.primary,
+            uncheckedThumbColor = theme.outline,
+            uncheckedTrackColor = theme.surfaceVariant,
+            uncheckedBorderColor = theme.outline,
+        )
 
-            Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-                Text(text = label, modifier = Modifier.weight(1f), color = textColor)
+        val onChanged = { new: Boolean ->
+            checked = new
+            lastSentValue = new
+            if (onChangeCb != 0) {
+                NativeUIBridge.sendToggleChangeEvent(onChangeCb, node.id, new)
+            }
+        }
+
+        val rowModifier = modifier
+            .let { m -> if (a11yLabel.isNotEmpty()) m.semantics { contentDescription = a11yLabel } else m }
+            .let { m -> if (a11yHint.isNotEmpty())  m.semantics { stateDescription   = a11yHint  } else m }
+
+        if (label.isNotEmpty()) {
+            Row(modifier = rowModifier, verticalAlignment = Alignment.CenterVertically) {
+                Text(text = label, modifier = Modifier.weight(1f), color = theme.onSurface)
                 Spacer(modifier = Modifier.width(8.dp))
-                Switch(checked = checked, onCheckedChange = onChanged, enabled = !disabled, colors = colors)
+                Switch(
+                    checked = checked,
+                    onCheckedChange = onChanged,
+                    enabled = !disabled,
+                    colors = colors,
+                )
             }
         } else {
-            Switch(checked = checked, onCheckedChange = onChanged, modifier = modifier, enabled = !disabled, colors = colors)
+            Switch(
+                checked = checked,
+                onCheckedChange = onChanged,
+                modifier = rowModifier,
+                enabled = !disabled,
+                colors = colors,
+            )
         }
     }
 }

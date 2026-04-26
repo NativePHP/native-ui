@@ -1,14 +1,24 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * ButtonGroup — segmented single-choice selector. Options are a flat array of
+ * strings; the group owns the selected-index state.
+ *
+ * Accepts `native:model="planTier"` where `$planTier` is an int property.
+ *
+ * Model 3: active/inactive colors from theme tokens. No per-instance color
+ * override.
+ */
 class ButtonGroup extends Element
 {
     protected string $type = 'button_group';
 
+    /** @var array<string, mixed> */
     protected array $buttonGroupProps = [];
 
     protected ?string $changeCallback = null;
@@ -20,37 +30,32 @@ class ButtonGroup extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['options'])) {
-            $this->options($attrs['options']);
+        if (isset($attrs['options'])) { $this->options((array) $attrs['options']); }
+        if (isset($attrs['value']))         { $this->selectedIndex((int) $attrs['value']); }
+        if (isset($attrs['selectedIndex'])) { $this->selectedIndex((int) $attrs['selectedIndex']); }
+        if (isset($attrs['selected-index'])){ $this->selectedIndex((int) $attrs['selected-index']); }
+        if (! empty($attrs['disabled']))    { $this->disabled(); }
+
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
         }
-        if (isset($attrs['selectedIndex'])) {
-            $this->selectedIndex((int) $attrs['selectedIndex']);
-        }
-        if (isset($attrs['color'])) {
-            $this->color($attrs['color']);
-        }
-        if (! empty($attrs['disabled'])) {
-            $this->disabled();
+
+        if (isset($attrs['sync-mode']) || isset($attrs['syncMode'])) {
+            $this->syncMode($attrs['sync-mode'] ?? $attrs['syncMode']);
         }
     }
 
+    /** @param array<int|string, string> $options */
     public function options(array $options): static
     {
-        $this->buttonGroupProps['options'] = $options;
+        $this->buttonGroupProps['options'] = array_values(array_map('strval', $options));
 
         return $this;
     }
 
     public function selectedIndex(int $index): static
     {
-        $this->buttonGroupProps['selected_index'] = $index;
-
-        return $this;
-    }
-
-    public function color(string $color): static
-    {
-        $this->buttonGroupProps['color'] = $color;
+        $this->buttonGroupProps['value'] = $index;
 
         return $this;
     }
@@ -58,6 +63,20 @@ class ButtonGroup extends Element
     public function disabled(bool $value = true): static
     {
         $this->buttonGroupProps['disabled'] = $value;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->buttonGroupProps['a11y_label'] = $value;
+
+        return $this;
+    }
+
+    public function syncMode(string $mode): static
+    {
+        $this->buttonGroupProps['sync_mode'] = $mode;
 
         return $this;
     }
@@ -78,5 +97,12 @@ class ButtonGroup extends Element
         }
 
         return $props;
+    }
+
+    // ── Model 3 enforcement ──────────────────────────────────────────────────
+
+    public function getStyle(): array
+    {
+        return [];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;

@@ -1,23 +1,23 @@
-# ComposeUI Plugin for NativePHP Mobile
+# NativeUI Plugin for NativePHP Mobile
 
 A NativePHP Mobile plugin
 
 ## Installation
 
 ```bash
-composer require nativephp/compose-ui
+composer require nativephp/native-ui
 ```
 
 ## Usage
 
 ```php
-use Nativephp\ComposeUi\Facades\ComposeUI;
+use Nativephp\NativeUi\Facades\NativeUI;
 
 // Execute functionality
-$result = ComposeUI::execute(['option1' => 'value']);
+$result = NativeUI::execute(['option1' => 'value']);
 
 // Get status
-$status = ComposeUI::getStatus();
+$status = NativeUI::getStatus();
 ```
 
 ## Listening for Events
@@ -25,8 +25,8 @@ $status = ComposeUI::getStatus();
 ```php
 use Livewire\Attributes\On;
 
-#[On('native:Nativephp\ComposeUi\Events\ComposeUICompleted')]
-public function handleComposeUICompleted($result, $id = null)
+#[On('native:Nativephp\NativeUi\Events\NativeUICompleted')]
+public function handleNativeUICompleted($result, $id = null)
 {
     // Handle the event
 }

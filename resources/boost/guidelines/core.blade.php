@@ -1,45 +1,45 @@
-## nativephp/compose-ui
+## nativephp/native-ui
 
 A NativePHP Mobile plugin
 
 ### Installation
 
 ```bash
-composer require nativephp/compose-ui
+composer require nativephp/native-ui
 ```
 
 ### PHP Usage (Livewire/Blade)
 
-Use the `ComposeUI` facade:
+Use the `NativeUI` facade:
 
 @verbatim
-<code-snippet name="Using ComposeUI Facade" lang="php">
-use Nativephp\ComposeUi\Facades\ComposeUI;
+<code-snippet name="Using NativeUI Facade" lang="php">
+use Nativephp\NativeUi\Facades\NativeUI;
 
 // Execute the plugin functionality
-$result = ComposeUI::execute(['option1' => 'value']);
+$result = NativeUI::execute(['option1' => 'value']);
 
 // Get the current status
-$status = ComposeUI::getStatus();
+$status = NativeUI::getStatus();
 </code-snippet>
 @endverbatim
 
 ### Available Methods
 
-- `ComposeUI::execute()`: Execute the plugin functionality
-- `ComposeUI::getStatus()`: Get the current status
+- `NativeUI::execute()`: Execute the plugin functionality
+- `NativeUI::getStatus()`: Get the current status
 
 ### Events
 
-- `ComposeUICompleted`: Listen with `#[OnNative(ComposeUICompleted::class)]`
+- `NativeUICompleted`: Listen with `#[OnNative(NativeUICompleted::class)]`
 
 @verbatim
-<code-snippet name="Listening for ComposeUI Events" lang="php">
+<code-snippet name="Listening for NativeUI Events" lang="php">
 use Native\Mobile\Attributes\OnNative;
-use Nativephp\ComposeUi\Events\ComposeUICompleted;
+use Nativephp\NativeUi\Events\NativeUICompleted;
 
-#[OnNative(ComposeUICompleted::class)]
-public function handleComposeUICompleted($result, $id = null)
+#[OnNative(NativeUICompleted::class)]
+public function handleNativeUICompleted($result, $id = null)
 {
     // Handle the event
 }
@@ -49,13 +49,13 @@ public function handleComposeUICompleted($result, $id = null)
 ### JavaScript Usage (Vue/React/Inertia)
 
 @verbatim
-<code-snippet name="Using ComposeUI in JavaScript" lang="javascript">
-import { composeUI } from '@nativephp/compose-ui';
+<code-snippet name="Using NativeUI in JavaScript" lang="javascript">
+import { nativeUI } from '@nativephp/native-ui';
 
 // Execute the plugin functionality
-const result = await composeUI.execute({ option1: 'value' });
+const result = await nativeUI.execute({ option1: 'value' });
 
 // Get the current status
-const status = await composeUI.getStatus();
+const status = await nativeUI.getStatus();
 </code-snippet>
 @endverbatim

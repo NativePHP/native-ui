@@ -1,14 +1,21 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Radio — child of `<native:radio-group>`. Declares a value + optional label.
+ * Selection state is owned by the parent group.
+ *
+ * Model 3: colors from theme.
+ */
 class Radio extends Element
 {
     protected string $type = 'radio';
 
+    /** @var array<string, mixed> */
     protected array $radioProps = [];
 
     public static function make(string $value = ''): static
@@ -23,30 +30,17 @@ class Radio extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['radioValue'])) {
-            $this->radioProps['value'] = $attrs['radioValue'];
-        }
-        if (isset($attrs['label'])) {
-            $this->label($attrs['label']);
-        }
-        if (isset($attrs['labelColor'])) {
-            $this->labelColor($attrs['labelColor']);
-        }
-        if (! empty($attrs['disabled'])) {
-            $this->disabled();
-        }
+        // `value` is the option's own value, distinct from the group's
+        // selected value. We also accept `radioValue` as a legacy alias.
+        if (isset($attrs['value']))      { $this->radioProps['value'] = (string) $attrs['value']; }
+        if (isset($attrs['radioValue'])) { $this->radioProps['value'] = (string) $attrs['radioValue']; }
+        if (isset($attrs['label']))      { $this->label($attrs['label']); }
+        if (! empty($attrs['disabled'])) { $this->disabled(); }
     }
 
     public function label(string $label): static
     {
         $this->radioProps['label'] = $label;
-
-        return $this;
-    }
-
-    public function labelColor(string $color): static
-    {
-        $this->radioProps['label_color'] = $color;
 
         return $this;
     }
@@ -61,5 +55,12 @@ class Radio extends Element
     protected function resolveProps(CallbackRegistry $registry): array
     {
         return $this->radioProps;
+    }
+
+    // ── Model 3 enforcement ──────────────────────────────────────────────────
+
+    public function getStyle(): array
+    {
+        return [];
     }
 }

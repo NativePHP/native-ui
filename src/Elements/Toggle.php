@@ -1,14 +1,28 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Toggle — binary on/off switch. Renders as a SwiftUI `Toggle` on iOS and an
+ * M3 `Switch` (with optional label row) on Android.
+ *
+ * Model 3: no per-instance color overrides. Active track / thumb colors come
+ * from `theme.primary` / `theme.on-primary`. For custom visuals, drop to
+ * `<native:pressable>` with a custom drawing.
+ *
+ * Honors `native:model`. `sync_mode` is accepted for API consistency with
+ * the other stateful components, though for a discrete control the distinction
+ * between live / debounce / blur matters less than it does for sliders or
+ * text inputs — every tap is a discrete event.
+ */
 class Toggle extends Element
 {
     protected string $type = 'toggle';
 
+    /** @var array<string, mixed> */
     protected array $toggleProps = [];
 
     protected ?string $changeCallback = null;
@@ -20,12 +34,32 @@ class Toggle extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['value'])) {
-            $this->value((bool) $attrs['value']);
+        if (isset($attrs['label']))    { $this->label($attrs['label']); }
+        if (isset($attrs['value']))    { $this->value((bool) $attrs['value']); }
+        if (! empty($attrs['disabled'])) { $this->disabled(); }
+
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
         }
-        if (! empty($attrs['disabled'])) {
-            $this->disabled();
+        if (isset($attrs['a11y-hint']) || isset($attrs['a11yHint'])) {
+            $this->a11yHint($attrs['a11y-hint'] ?? $attrs['a11yHint']);
         }
+
+        // Sync mode + debounce, normally populated by the `native:model`
+        // directive expansion.
+        if (isset($attrs['sync-mode']) || isset($attrs['syncMode'])) {
+            $this->syncMode($attrs['sync-mode'] ?? $attrs['syncMode']);
+        }
+        if (isset($attrs['debounce-ms']) || isset($attrs['debounceMs'])) {
+            $this->debounceMs((int) ($attrs['debounce-ms'] ?? $attrs['debounceMs']));
+        }
+    }
+
+    public function label(string $text): static
+    {
+        $this->toggleProps['label'] = $text;
+
+        return $this;
     }
 
     public function value(bool $checked): static
@@ -38,6 +72,34 @@ class Toggle extends Element
     public function disabled(bool $value = true): static
     {
         $this->toggleProps['disabled'] = $value;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->toggleProps['a11y_label'] = $value;
+
+        return $this;
+    }
+
+    public function a11yHint(string $value): static
+    {
+        $this->toggleProps['a11y_hint'] = $value;
+
+        return $this;
+    }
+
+    public function syncMode(string $mode): static
+    {
+        $this->toggleProps['sync_mode'] = $mode;
+
+        return $this;
+    }
+
+    public function debounceMs(int $ms): static
+    {
+        $this->toggleProps['debounce_ms'] = $ms;
 
         return $this;
     }
@@ -58,5 +120,20 @@ class Toggle extends Element
         }
 
         return $props;
+    }
+
+    // ── Model 3 enforcement ──────────────────────────────────────────────────
+
+    public function getStyle(): array
+    {
+        return [];
+    }
+
+    public function getLayout(): array
+    {
+        $layout = parent::getLayout();
+        unset($layout['padding']);
+
+        return $layout;
     }
 }
