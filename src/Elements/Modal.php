@@ -1,14 +1,25 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Modal — full-screen overlay presentation.
+ *
+ * Visibility is driven by the `visible` prop. PHP keeps that state and
+ * toggles it via a callback, typically bound through `native:model` or a
+ * dedicated `@dismiss` action. `dismissible` controls whether tapping the
+ * backdrop or the close button fires `@dismiss`.
+ *
+ * Model 3: backdrop + surface colors come from theme tokens.
+ */
 class Modal extends Element
 {
     protected string $type = 'modal';
 
+    /** @var array<string, mixed> */
     protected array $modalProps = [];
 
     protected ?string $dismissCallback = null;
@@ -20,11 +31,12 @@ class Modal extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['visible'])) {
-            $this->visible((bool) $attrs['visible']);
-        }
+        if (isset($attrs['visible']))   { $this->visible((bool) $attrs['visible']); }
         if (isset($attrs['dismissible']) || isset($attrs['dismissable'])) {
             $this->dismissible((bool) ($attrs['dismissible'] ?? $attrs['dismissable']));
+        }
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
         }
     }
 
@@ -38,6 +50,13 @@ class Modal extends Element
     public function dismissible(bool $value = true): static
     {
         $this->modalProps['dismissible'] = $value;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->modalProps['a11y_label'] = $value;
 
         return $this;
     }

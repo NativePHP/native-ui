@@ -1,23 +1,32 @@
-package com.nativephp.plugins.compose_ui.ui
+package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.nativephp.mobile.ui.nativerender.NativeUINode
+import com.nativephp.plugins.native_ui.NativeUITheme
 
+/**
+ * Material3 Radio — child of [RadioGroupRenderer]. Selection state and the
+ * change callback are owned by the group; this renderer just displays the
+ * button + label and relays taps.
+ *
+ * Standalone radios (outside a group) render as always-unselected.
+ */
 object RadioRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
-        // Standalone radio (outside RadioGroup) — no selection state
-        Render(node, modifier, selectedValue = null, onSelect = null)
+        // Standalone — no selection state available.
+        Render(node, modifier, selectedValue = null, groupDisabled = false, onSelect = null)
     }
 
     @Composable
@@ -25,36 +34,39 @@ object RadioRenderer {
         node: NativeUINode,
         modifier: Modifier,
         selectedValue: String?,
-        onSelect: ((String) -> Unit)?
+        groupDisabled: Boolean,
+        onSelect: ((String) -> Unit)?,
     ) {
         val p = node.props
-        val value = p.getString("value")
-        val label = p.getString("label")
-        val labelColor = p.getColor("label_color", 0xFF000000.toInt())
-        val disabled = p.getBool("disabled")
+        val value    = p.getString("value")
+        val label    = p.getString("label")
+        val disabled = groupDisabled || p.getBool("disabled")
         val isSelected = selectedValue == value
+
+        val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
+
+        val colors = RadioButtonDefaults.colors(
+            selectedColor = theme.primary,
+            unselectedColor = theme.onSurfaceVariant,
+            disabledSelectedColor = theme.primary.copy(alpha = 0.38f),
+            disabledUnselectedColor = theme.onSurfaceVariant.copy(alpha = 0.38f),
+        )
 
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .clickable(enabled = !disabled) {
-                    onSelect?.invoke(value)
-                },
+                .clickable(enabled = !disabled) { onSelect?.invoke(value) },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             RadioButton(
                 selected = isSelected,
-                onClick = {
-                    onSelect?.invoke(value)
-                },
-                enabled = !disabled
+                onClick = { onSelect?.invoke(value) },
+                enabled = !disabled,
+                colors = colors,
             )
             if (label.isNotEmpty()) {
-                Text(
-                    text = label,
-                    color = Color(labelColor)
-                )
+                Text(text = label, color = theme.onSurface)
             }
         }
     }

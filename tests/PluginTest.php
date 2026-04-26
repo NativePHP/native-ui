@@ -19,7 +19,7 @@ describe('Plugin Manifest', function () {
         $manifest = json_decode(file_get_contents($this->manifestPath), true);
 
         expect($manifest)->toHaveKeys(['namespace', 'components']);
-        expect($manifest['namespace'])->toBe('ComposeUI');
+        expect($manifest['namespace'])->toBe('NativeUI');
     });
 
     it('has valid components', function () {
@@ -41,8 +41,8 @@ describe('Plugin Manifest', function () {
 
         $button = collect($manifest['components'])->firstWhere('type', 'button');
         expect($button)->not->toBeNull();
-        expect($button['element'])->toBe('Nativephp\\ComposeUi\\Elements\\Button');
-        expect($button['blade'])->toBe('Nativephp\\ComposeUi\\Components\\Button');
+        expect($button['element'])->toBe('Nativephp\\NativeUi\\Elements\\Button');
+        expect($button['blade'])->toBe('Nativephp\\NativeUi\\Components\\Button');
         expect($button['android_renderer'])->not->toBeEmpty();
         expect($button['ios_renderer'])->not->toBeEmpty();
     });
@@ -69,7 +69,7 @@ describe('PHP Classes', function () {
     });
 
     it('has service provider', function () {
-        $file = $this->pluginPath . '/src/ComposeUIServiceProvider.php';
+        $file = $this->pluginPath . '/src/NativeUIServiceProvider.php';
         expect(file_exists($file))->toBeTrue();
     });
 });

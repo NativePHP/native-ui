@@ -1,5 +1,5 @@
 {
-    "name": "nativephp/compose-ui",
+    "name": "nativephp/native-ui",
     "description": "A NativePHP Mobile plugin",
     "type": "nativephp-ui-plugin",
     "license": "MIT",
@@ -15,13 +15,13 @@
     },
     "autoload": {
         "psr-4": {
-            "Nativephp\\ComposeUi\\": "src/"
+            "Nativephp\\NativeUi\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Nativephp\\ComposeUi\\ComposeUIServiceProvider"
+                "Nativephp\\NativeUi\\NativeUIServiceProvider"
             ]
         },
         "nativephp": {

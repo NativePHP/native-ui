@@ -1,14 +1,26 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Slider — continuous (or stepped) value selection.
+ *
+ * Model 3: no per-instance color/track overrides. Colors come from theme
+ * tokens (`primary` for the active track + thumb). For fully custom visuals,
+ * drop to `<native:pressable>` wrapping a custom drawing.
+ *
+ * Honors `native:model` with live / blur / debounce modifiers. Default is
+ * `live` — every drag tick fires a change event. `blur` collapses to one
+ * event per drag release. `debounce.Xms` coalesces rapid drags.
+ */
 class Slider extends Element
 {
     protected string $type = 'slider';
 
+    /** @var array<string, mixed> */
     protected array $sliderProps = [];
 
     protected ?string $changeCallback = null;
@@ -20,26 +32,28 @@ class Slider extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['value'])) {
-            $this->value((float) $attrs['value']);
+        if (isset($attrs['value']))    { $this->value((float) $attrs['value']); }
+        if (isset($attrs['min']))      { $this->min((float) $attrs['min']); }
+        if (isset($attrs['max']))      { $this->max((float) $attrs['max']); }
+        if (isset($attrs['step']))     { $this->step((float) $attrs['step']); }
+        if (! empty($attrs['disabled'])) { $this->disabled(); }
+
+        if (isset($attrs['size']))     { $this->size($attrs['size']); }
+
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
         }
-        if (isset($attrs['min'])) {
-            $this->min((float) $attrs['min']);
+        if (isset($attrs['a11y-hint']) || isset($attrs['a11yHint'])) {
+            $this->a11yHint($attrs['a11y-hint'] ?? $attrs['a11yHint']);
         }
-        if (isset($attrs['max'])) {
-            $this->max((float) $attrs['max']);
+
+        // Sync mode + debounce, normally populated by the `native:model`
+        // directive expansion. Can also be set manually.
+        if (isset($attrs['sync-mode']) || isset($attrs['syncMode'])) {
+            $this->syncMode($attrs['sync-mode'] ?? $attrs['syncMode']);
         }
-        if (isset($attrs['step'])) {
-            $this->step((float) $attrs['step']);
-        }
-        if (isset($attrs['color'])) {
-            $this->color($attrs['color']);
-        }
-        if (isset($attrs['trackColor'])) {
-            $this->trackColor($attrs['trackColor']);
-        }
-        if (! empty($attrs['disabled'])) {
-            $this->disabled();
+        if (isset($attrs['debounce-ms']) || isset($attrs['debounceMs'])) {
+            $this->debounceMs((int) ($attrs['debounce-ms'] ?? $attrs['debounceMs']));
         }
     }
 
@@ -71,23 +85,44 @@ class Slider extends Element
         return $this;
     }
 
-    public function color(string $color): static
-    {
-        $this->sliderProps['color'] = $color;
-
-        return $this;
-    }
-
-    public function trackColor(string $color): static
-    {
-        $this->sliderProps['track_color'] = $color;
-
-        return $this;
-    }
-
     public function disabled(bool $value = true): static
     {
         $this->sliderProps['disabled'] = $value;
+
+        return $this;
+    }
+
+    public function size(string $value): static
+    {
+        $this->sliderProps['size'] = $value;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->sliderProps['a11y_label'] = $value;
+
+        return $this;
+    }
+
+    public function a11yHint(string $value): static
+    {
+        $this->sliderProps['a11y_hint'] = $value;
+
+        return $this;
+    }
+
+    public function syncMode(string $mode): static
+    {
+        $this->sliderProps['sync_mode'] = $mode;
+
+        return $this;
+    }
+
+    public function debounceMs(int $ms): static
+    {
+        $this->sliderProps['debounce_ms'] = $ms;
 
         return $this;
     }
@@ -108,5 +143,20 @@ class Slider extends Element
         }
 
         return $props;
+    }
+
+    // ── Model 3 enforcement ──────────────────────────────────────────────────
+
+    public function getStyle(): array
+    {
+        return [];
+    }
+
+    public function getLayout(): array
+    {
+        $layout = parent::getLayout();
+        unset($layout['padding']);
+
+        return $layout;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Nativephp\ComposeUi\Components;
+namespace Nativephp\NativeUi\Components;
 
 use Native\Mobile\Edge\Components\Native\NativeBladeComponent;
 use Native\Mobile\Edge\NativeElementCollector;

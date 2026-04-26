@@ -1,14 +1,21 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * TabRow — horizontal segmented selector. Holds `<native:tab>` children; the
+ * row owns the selected-index state.
+ *
+ * Accepts `native:model="activeTab"` where `$activeTab` is an int property.
+ */
 class TabRow extends Element
 {
     protected string $type = 'tab_row';
 
+    /** @var array<string, mixed> */
     protected array $tabRowProps = [];
 
     protected ?string $changeCallback = null;
@@ -23,14 +30,40 @@ class TabRow extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['selectedIndex'])) {
-            $this->selectedIndex((int) $attrs['selectedIndex']);
+        // Accept `value` (from native:model expansion) and `selectedIndex`
+        // (from the fluent API / legacy shape) as aliases.
+        if (isset($attrs['value']))         { $this->selectedIndex((int) $attrs['value']); }
+        if (isset($attrs['selectedIndex'])) { $this->selectedIndex((int) $attrs['selectedIndex']); }
+        if (isset($attrs['selected-index'])){ $this->selectedIndex((int) $attrs['selected-index']); }
+
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
+        }
+
+        if (isset($attrs['sync-mode']) || isset($attrs['syncMode'])) {
+            $this->syncMode($attrs['sync-mode'] ?? $attrs['syncMode']);
         }
     }
 
     public function selectedIndex(int $index): static
     {
-        $this->tabRowProps['selected_index'] = $index;
+        // Stored under `value` so native:model → `__syncProperty` writes
+        // through the same key every other stateful component uses.
+        $this->tabRowProps['value'] = $index;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->tabRowProps['a11y_label'] = $value;
+
+        return $this;
+    }
+
+    public function syncMode(string $mode): static
+    {
+        $this->tabRowProps['sync_mode'] = $mode;
 
         return $this;
     }
@@ -51,5 +84,12 @@ class TabRow extends Element
         }
 
         return $props;
+    }
+
+    // ── Model 3 enforcement ──────────────────────────────────────────────────
+
+    public function getStyle(): array
+    {
+        return [];
     }
 }

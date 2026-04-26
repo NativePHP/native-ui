@@ -1,14 +1,27 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Badge — small count or text marker, typically used as an overlay on nav
+ * items or buttons.
+ *
+ * Variants (semantic, color comes from theme):
+ *   destructive (default) — theme.destructive / on-destructive
+ *   primary               — theme.primary / on-primary
+ *   accent                — theme.accent / on-accent
+ *
+ * Use either `count` (renders an integer; "99+" for >99) or `label` (arbitrary
+ * short text). If both set, `label` wins.
+ */
 class Badge extends Element
 {
     protected string $type = 'badge';
 
+    /** @var array<string, mixed> */
     protected array $badgeProps = [];
 
     public static function make(): static
@@ -18,14 +31,12 @@ class Badge extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['count'])) {
-            $this->count((int) $attrs['count']);
-        }
-        if (isset($attrs['color'])) {
-            $this->color($attrs['color']);
-        }
-        if (isset($attrs['textColor'])) {
-            $this->textColor($attrs['textColor']);
+        if (isset($attrs['count']))   { $this->count((int) $attrs['count']); }
+        if (isset($attrs['label']))   { $this->label($attrs['label']); }
+        if (isset($attrs['variant'])) { $this->variant((string) $attrs['variant']); }
+
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
         }
     }
 
@@ -36,16 +47,23 @@ class Badge extends Element
         return $this;
     }
 
-    public function color(string $color): static
+    public function label(string $text): static
     {
-        $this->badgeProps['color'] = $color;
+        $this->badgeProps['label'] = $text;
 
         return $this;
     }
 
-    public function textColor(string $color): static
+    public function variant(string $variant): static
     {
-        $this->badgeProps['text_color'] = $color;
+        $this->badgeProps['variant'] = $variant;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->badgeProps['a11y_label'] = $value;
 
         return $this;
     }

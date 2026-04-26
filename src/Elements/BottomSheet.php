@@ -1,14 +1,23 @@
 <?php
 
-namespace Nativephp\ComposeUi\Elements;
+namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
+/**
+ * Bottom sheet — dismissible panel that slides up from the bottom. Visibility
+ * driven by `visible`; `@dismiss` fires on drag-down or tap-outside.
+ *
+ * Model 3: container colors from theme. No per-instance `backgroundColor`
+ * override — wrap content in `<native:column class="bg-...">` if a
+ * non-standard surface is truly needed, but prefer the theme.
+ */
 class BottomSheet extends Element
 {
     protected string $type = 'bottom_sheet';
 
+    /** @var array<string, mixed> */
     protected array $sheetProps = [];
 
     protected ?string $dismissCallback = null;
@@ -20,22 +29,12 @@ class BottomSheet extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['visible'])) {
-            $this->visible((bool) $attrs['visible']);
-        }
-        if (isset($attrs['detents'])) {
-            $this->detents($attrs['detents']);
-        }
-        if (isset($attrs['background-color']) || isset($attrs['backgroundColor'])) {
-            $this->backgroundColor($attrs['background-color'] ?? $attrs['backgroundColor']);
-        }
-    }
+        if (isset($attrs['visible'])) { $this->visible((bool) $attrs['visible']); }
+        if (isset($attrs['detents'])) { $this->detents($attrs['detents']); }
 
-    public function backgroundColor(string $color): static
-    {
-        $this->sheetProps['background_color'] = $color;
-
-        return $this;
+        if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
+            $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
+        }
     }
 
     public function visible(bool $value = true): static
@@ -47,12 +46,20 @@ class BottomSheet extends Element
 
     /**
      * Set allowed sheet heights.
-     * Accepts: "small", "medium", "large", "full", or comma-separated like "medium,large"
-     * Also accepts a float (0.0-1.0) for a custom fraction of screen height.
+     * Accepts: "small", "medium", "large", "full", or comma-separated
+     * ("medium,large"). Also accepts a numeric fraction (0.0–1.0) for a
+     * custom height (e.g. "0.4" for 40% of screen).
      */
     public function detents(string $detents): static
     {
         $this->sheetProps['detents'] = $detents;
+
+        return $this;
+    }
+
+    public function a11yLabel(string $value): static
+    {
+        $this->sheetProps['a11y_label'] = $value;
 
         return $this;
     }

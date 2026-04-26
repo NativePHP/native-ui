@@ -1,4 +1,4 @@
-package com.nativephp.plugins.compose_ui.ui
+package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
