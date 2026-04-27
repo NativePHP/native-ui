@@ -10,8 +10,23 @@ struct NativeUITopBarRenderer: View {
         let title = props.getString("title", default: "")
         let textColorArgb = props.getColor("text_color", default: 0)
         let textColor: Color = textColorArgb != 0 ? Color(argb: textColorArgb) : .primary
+        let showBack = props.getBool("show_navigation_icon")
 
-        HStack {
+        HStack(spacing: 8) {
+            // Leading: back button (system back, not a press callback —
+            // the PHP runloop catches EventType.systemBack and pops the stack).
+            if showBack {
+                Button {
+                    NativeElementBridge.sendSystemBackEvent()
+                } label: {
+                    Image(systemName: "chevron.backward")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(textColor)
+                        .frame(width: 32, height: 32, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+            }
+
             Text(title)
                 .font(.headline)
                 .foregroundColor(textColor)
