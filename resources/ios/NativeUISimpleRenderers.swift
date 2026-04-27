@@ -17,7 +17,12 @@ struct NativeUICanvasRenderer: View {
 struct NativeUISpacerRenderer: View {
     let node: NativeUINode
     var body: some View {
-        Spacer()
+        // SwiftUI's `Spacer()` only expands inside SwiftUI's own HStack/VStack —
+        // our FlexContainer is a custom Layout, so a real Spacer would size to
+        // zero. Color.clear accepts whatever proposal FlexContainer gives it
+        // (driven by the spacer node's flex_grow=1 default), so it claims the
+        // remaining main-axis space and pushes siblings apart as expected.
+        Color.clear
     }
 }
 
