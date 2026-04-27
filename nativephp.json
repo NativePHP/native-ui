@@ -383,6 +383,12 @@
             "android": "com.nativephp.plugins.native_ui.NativeUIThemeFunctions.Set",
             "ios": "NativeUIThemeFunctions.Set",
             "description": "Apply theme tokens (colors, radii, typography) to the runtime store"
+        },
+        {
+            "name": "NativeUI.Transition.Set",
+            "android": "com.nativephp.plugins.native_ui.NativeUITransitionFunctions.Set",
+            "ios": "NativeUITransitionFunctions.Set",
+            "description": "Stage an inter-screen transition for the next published element tree"
         }
     ],
     "android": {
