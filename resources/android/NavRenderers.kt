@@ -45,13 +45,17 @@ object TopBarRenderer {
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (showNavIcon) {
+                // Back chevron — fires a system-back event into the PHP event
+                // queue. The runloop catches type 8 (EventType.systemBack) and
+                // calls onBackPressed → back(), popping the navigation stack.
+                // Same path the device hardware back button uses.
                 Text(
-                    text = getIconName("menu"),
+                    text = getIconName("arrow_back"),
                     fontFamily = iconFont,
                     fontSize = 24.sp,
                     color = textColor,
                     modifier = Modifier.padding(end = 16.dp).clickable {
-                        NativeUIState.drawerScope?.launch { NativeUIState.drawerState?.open() }
+                        NativeElementBridge.sendSystemBackEvent()
                     }
                 )
             }
