@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -34,7 +35,10 @@ object RowRenderer {
 object StackRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
-        Box(modifier = modifier) {
+        // contentAlignment = Center to match SwiftUI's ZStack default. Without
+        // this, Compose Box stacks children at TopStart (upper-left), which
+        // diverges from the iOS renderer.
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
             node.children.forEach { child ->
                 // Stack children may need fill sizing
                 var childMod: Modifier = Modifier
