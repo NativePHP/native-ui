@@ -186,7 +186,7 @@ object ButtonRenderer {
                     color = LocalContentColor.current,
                 )
                 if (label.isNotEmpty()) {
-                    Text(text = label, fontSize = textSize)
+                    Text(text = label, fontSize = textSize, maxLines = 1, softWrap = false)
                 }
                 return@Row
             }
@@ -200,7 +200,13 @@ object ButtonRenderer {
                 )
             }
             if (label.isNotEmpty()) {
-                Text(text = label, fontSize = textSize)
+                // maxLines + softWrap: button labels are short single-line by
+                // convention. Without these, Compose wraps mid-word when the
+                // parent flex-wrap row squeezes the button below its natural
+                // width, producing fragments like "Destruct\nive". With them,
+                // the button claims its full content width and flex-wrap kicks
+                // the whole button to the next row.
+                Text(text = label, fontSize = textSize, maxLines = 1, softWrap = false)
             }
             if (iconTrailing.isNotEmpty()) {
                 MaterialIcon(
