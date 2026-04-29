@@ -5,11 +5,17 @@ import SwiftUI
 struct NativeUITopBarRenderer: View {
     let node: NativeUINode
 
+    @Environment(\.nativeSafeAreaTop) private var safeAreaTop: CGFloat
+
     var body: some View {
         let props = node.props
         let title = props.getString("title", default: "")
+        let subtitle = props.getString("subtitle", default: "")
         let textColorArgb = props.getColor("text_color", default: 0)
         let textColor: Color = textColorArgb != 0 ? Color(argb: textColorArgb) : .primary
+        let bgColorArgb = props.getColor("background_color", default: 0)
+        let backgroundColor: Color = bgColorArgb != 0 ? Color(argb: bgColorArgb) : .clear
+        let elevation = CGFloat(props.getFloat("elevation"))
         let showBack = props.getBool("show_navigation_icon")
 
         HStack(spacing: 8) {
@@ -27,9 +33,16 @@ struct NativeUITopBarRenderer: View {
                 .buttonStyle(.plain)
             }
 
-            Text(title)
-                .font(.headline)
-                .foregroundColor(textColor)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(textColor)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(textColor.opacity(0.7))
+                }
+            }
 
             Spacer()
 
@@ -41,12 +54,30 @@ struct NativeUITopBarRenderer: View {
                     }
                 } label: {
                     Image(systemName: getIconForName(icon))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(textColor)
+                        .frame(width: 32, height: 32)
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.top, 8 + safeAreaTop)        // status-bar / notch inset
+        .padding(.bottom, 8)
+        .background(backgroundColor)
+        // Elevation renders as a hairline at the bottom of the bar — a
+        // SwiftUI `.shadow()` cast outside the bar's bounds gets covered
+        // by the next sibling in the wrapper column (the screen content
+        // typically has its own background). The hairline lives inside
+        // the bar's bounds so it always paints, and matches the standard
+        // iOS chrome separator look.
+        .overlay(alignment: .bottom) {
+            if elevation > 0 {
+                Rectangle()
+                    .fill(Color.black.opacity(0.12))
+                    .frame(height: max(0.5, elevation / 4))
+            }
+        }
     }
 }
 
@@ -55,14 +86,57 @@ struct NativeUITopBarRenderer: View {
 struct NativeUIBottomNavRenderer: View {
     let node: NativeUINode
 
+    @Environment(\.nativeSafeAreaBottom) private var safeAreaBottom: CGFloat
+
     var body: some View {
         let items = node.children.filter { $0.type == "bottom_nav_item" }
 
+        // Bar-level props from the BottomNav element. `active_color` is set
+        // by `TabBar::activeColor()` (hex string parsed via ColorParser).
+        // `dark` is set by `TabBar::dark()` and shifts both the bar's
+        // background and the inactive item color toward a dark theme.
+        // `label_visibility` ("labeled" / "selected" / "unlabeled") controls
+        // when each item's label text is shown.
+        let activeArgb = node.props.getColor("active_color", default: 0)
+        let activeColor: Color = activeArgb != 0 ? Color(argb: activeArgb) : .accentColor
+        let isDark = node.props.getBool("dark")
+        // Explicit `textColor()` from the TabBar builder wins for inactive
+        // items; falls back to the gray defaults picked by `dark()`.
+        let textColorArgb = node.props.getColor("text_color", default: 0)
+        let inactiveColor: Color = textColorArgb != 0
+            ? Color(argb: textColorArgb)
+            : (isDark ? Color(white: 0.7) : .gray)
+        // Explicit `backgroundColor()` from the TabBar builder wins; falls
+        // back to the `dark()` default (dark surface) or transparent.
+        let bgArgb = node.props.getColor("background_color", default: 0)
+        let barBackground: Color = bgArgb != 0
+            ? Color(argb: bgArgb)
+            : (isDark ? Color(white: 0.12) : Color.clear)
+        let labelVisibility = node.props.getString("label_visibility", default: "labeled")
+
+        // The bar's bg is provided by a Rectangle that explicitly ignores
+        // the wrapper's bottom safe area, so it reaches the screen edge
+        // (standard iOS chrome — bg through the home-indicator zone).
+        // Inside, an explicit bottom padding equal to the home-indicator
+        // inset pushes the icons up so they sit just above the indicator,
+        // not flush against it. This also visually balances the bar so it
+        // doesn't look like there's empty padding below the icons —
+        // because the dark bg now extends to the screen edge under them.
         HStack {
             ForEach(items) { item in
                 let label = item.props.getString("label", default: "")
                 let icon = item.props.getString("icon", default: "circle")
                 let active = item.props.getBool("active")
+                let badge = item.props.getString("badge", default: "")
+                let news = item.props.getBool("news")
+
+                let showLabel: Bool = {
+                    switch labelVisibility {
+                    case "unlabeled": return false
+                    case "selected":  return active
+                    default:          return true                 // "labeled"
+                    }
+                }()
 
                 Button {
                     if item.onPress != 0 {
@@ -70,19 +144,39 @@ struct NativeUIBottomNavRenderer: View {
                     }
                 } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: getIconForName(icon))
-                            .font(.system(size: 24))
-                        if !label.isEmpty {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: getIconForName(icon))
+                                .font(.system(size: 24))
+                            if !badge.isEmpty {
+                                Text(badge)
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1)
+                                    .background(Color.red)
+                                    .clipShape(Capsule())
+                                    .offset(x: 8, y: -6)
+                            } else if news {
+                                Circle()
+                                    .fill(Color.red)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 4, y: -2)
+                            }
+                        }
+                        if showLabel && !label.isEmpty {
                             Text(label)
                                 .font(.caption2)
                         }
                     }
-                    .foregroundColor(active ? .blue : .gray)
+                    .foregroundColor(active ? activeColor : inactiveColor)
                     .frame(maxWidth: .infinity)
                 }
             }
         }
-        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
+        .padding(.bottom, 8 + safeAreaBottom)   // home-indicator inset
+        .background(barBackground)
     }
 }
 
