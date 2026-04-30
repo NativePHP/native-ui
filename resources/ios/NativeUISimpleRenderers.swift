@@ -81,23 +81,41 @@ struct NativeUIImageRenderer: View {
         let contentMode = resolveContentMode(fit)
 
         if let url = URL(string: src), !src.isEmpty {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let image):
-                    let img = image.resizable().aspectRatio(contentMode: contentMode)
-                    if tintArgb != 0 {
-                        img.foregroundStyle(Color(argb: tintArgb))
-                    } else {
-                        img
+            // The Color.clear-overlay-clipped pattern. With just
+            // `image.resizable().aspectRatio(.fill).clipped()`, the
+            // AsyncImage on real devices doesn't reliably honor the
+            // outer `.frame(...)` set by NodeLayoutModifier — a
+            // higher-resolution decoded source reports an intrinsic
+            // size larger than the frame, the proposal-clamping path
+            // diverges between simulator and device, and the image
+            // ends up painting beyond its declared frame onto sibling
+            // views below. Wrapping in `Color.clear.overlay { ... }`
+            // forces the outer view to take exactly the proposed
+            // frame; `.clipped()` then clips the overlay (the image)
+            // to those bounds. Same behavior on simulator and device.
+            Color.clear
+                .overlay(
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            let img = image
+                                .resizable()
+                                .aspectRatio(contentMode: contentMode)
+                            if tintArgb != 0 {
+                                img.foregroundStyle(Color(argb: tintArgb))
+                            } else {
+                                img
+                            }
+                        case .failure:
+                            Color.clear
+                        case .empty:
+                            ProgressView()
+                        @unknown default:
+                            Color.clear
+                        }
                     }
-                case .failure:
-                    Color.clear
-                case .empty:
-                    ProgressView()
-                @unknown default:
-                    Color.clear
-                }
-            }
+                )
+                .clipped()
         } else {
             Color.clear
         }
