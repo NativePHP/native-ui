@@ -3,12 +3,20 @@ import SwiftUI
 struct NativeUITextRenderer: View {
     let node: NativeUINode
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         let p = node.props
         let text = p.getString("text")
         let fontSize = p.getFloat("font_size", default: 16)
         let fontWeight = resolveFontWeight(p.getInt("font_weight"))
-        let color = p.getColor("color", default: 0xFF000000)
+        let lightArgb = p.getColor("color", default: 0xFF000000)
+        let darkArgb  = p.getColor("dark_color", default: 0)
+        // Pick the dark hex when system is dark AND the theme class supplied
+        // one (theme classes auto-emit a `dark` companion). Fall through to
+        // the light value otherwise — matches NodeStyleModifier's bg/border
+        // dark resolution semantics.
+        let color: Int = (colorScheme == .dark && darkArgb != 0) ? darkArgb : lightArgb
         let textAlign = resolveTextAlign(p.getInt("text_align"))
         let maxLines = p.getInt("max_lines")
 

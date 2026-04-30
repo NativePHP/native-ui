@@ -26,13 +26,20 @@ class NativeUIServiceProvider extends ServiceProvider
         // after parent::boot().
         Theme::load(config('native-ui.theme', []));
 
-        // Enable `bg-theme-*` / `text-theme-*` Tailwind classes by giving
-        // the parser a way to resolve token names against our Theme.
-        //
-        // Resolves against the LIGHT token set — native-side components
-        // (<native:screen> etc.) handle dark-mode switching themselves.
+        // Enable `bg-theme-*` / `text-theme-*` / `border-theme-*` Tailwind
+        // classes by giving the parser a way to resolve token names against
+        // our Theme. Both LIGHT and DARK resolvers are registered so the
+        // parser emits a `dark` companion that the collector splits into
+        // `dark_bg_color` / `dark_color` / `dark_border_color` props —
+        // NodeStyleModifier picks the right hex at draw time based on
+        // system colorScheme.
         TailwindParser::setThemeResolver(function (string $token): ?string {
             $value = Theme::get("light.$token");
+
+            return is_string($value) ? $value : null;
+        });
+        TailwindParser::setThemeDarkResolver(function (string $token): ?string {
+            $value = Theme::get("dark.$token");
 
             return is_string($value) ? $value : null;
         });

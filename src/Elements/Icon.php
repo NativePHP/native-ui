@@ -24,14 +24,14 @@ class Icon extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        if (isset($attrs['name'])) {
-            $this->iconProps['name'] = $attrs['name'];
-        }
-        if (isset($attrs['size'])) {
-            $this->size((float) $attrs['size']);
-        }
-        if (isset($attrs['color'])) {
-            $this->color($attrs['color']);
+        if (isset($attrs['name']))  { $this->iconProps['name'] = $attrs['name']; }
+        if (isset($attrs['size']))  { $this->size((float) $attrs['size']); }
+        if (isset($attrs['color'])) { $this->color($attrs['color']); }
+
+        // Optional dark-mode override hex. Renderers pick this when the
+        // system colorScheme is dark; otherwise they use `color`.
+        if (isset($attrs['dark-color']) || isset($attrs['darkColor'])) {
+            $this->darkColor($attrs['dark-color'] ?? $attrs['darkColor']);
         }
     }
 
@@ -45,6 +45,13 @@ class Icon extends Element
     public function color(string $color): static
     {
         $this->iconProps['color'] = $color;
+
+        return $this;
+    }
+
+    public function darkColor(string $color): static
+    {
+        $this->iconProps['dark_color'] = $color;
 
         return $this;
     }
