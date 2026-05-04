@@ -26,8 +26,21 @@ struct NativeUIStackLayout: Layout {
         subviews: Subviews,
         cache: inout ()
     ) -> CGSize {
+        // Targeted scroll-view fix: a scroll-view's `.unspecified` measure
+        // returns its CONTENT size (e.g. a 2400x1600 image inside a 2D
+        // pannable scroll), not its frame size. Including that in maxSize
+        // inflates the stack to the inner content's dimensions, which
+        // bleeds into siblings (e.g. a `w-full` foreground column ends up
+        // 2400 wide too) and breaks scroll-view's own pan because it gets
+        // sized to its content instead of the viewport.
+        //
+        // Other types are unchanged — column / row / image / text / etc.
+        // contribute their natural size to maxSize as before.
         var maxSize = CGSize.zero
-        for subview in subviews {
+        for (i, subview) in subviews.enumerated() {
+            let isScrollView = i < childNodes.count && childNodes[i].type == "scroll_view"
+            if isScrollView { continue }
+
             let size = subview.sizeThatFits(.unspecified)
             maxSize.width = max(maxSize.width, size.width)
             maxSize.height = max(maxSize.height, size.height)

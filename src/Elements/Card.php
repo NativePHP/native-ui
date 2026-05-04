@@ -30,6 +30,13 @@ class Card extends Element
 
     public function applyAttributes(array $attrs): void
     {
+        // Default border_radius matches the iOS renderer's `theme.radiusLg`
+        // (16). This is what makes the outer NodeStyleModifier's bg paint +
+        // ClipRadiusModifier clip to the same rounded shape the card paints
+        // internally — without it, `bg-*` colors leak out at the corners.
+        // User-supplied `rounded-*` classes still override via applyStyle.
+        $this->borderRadius(16);
+
         if (isset($attrs['variant'])) {
             // Accept both the legacy int form (0/1/2) and the new string form.
             $raw = $attrs['variant'];

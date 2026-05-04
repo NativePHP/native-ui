@@ -4,6 +4,14 @@ import SwiftUI
 ///
 /// Echo-prevention (plan K) on bool selected state. Theme-sourced colors —
 /// primary for active, surfaceVariant + outline for inactive (Model 3).
+///
+/// `glass` Tailwind family swaps the capsule fill for Liquid Glass (iOS 26+
+/// real `.glassEffect(...)`, fallback `.regularMaterial`). The chip is
+/// registered in `NodeStyleModifier.glassHandledByRenderer` so the outer
+/// wrapper doesn't double-paint a glass plate behind the rectangular frame.
+///
+/// Bit 1 (prominent) is ignored — `.glassEffect()` has no prominent variant.
+/// Bit 2 (interactive) chains `.interactive(true)` for press-highlight.
 struct NativeUIChipRenderer: View {
     let node: NativeUINode
 
@@ -24,6 +32,12 @@ struct NativeUIChipRenderer: View {
         let disabled    = p.getBool("disabled")
         let a11yLabel   = p.getString("a11y_label")
         let a11yHint    = p.getString("a11y_hint")
+
+        let glassFlags = p.getInt("glass", default: 0)
+        let glassEnabled     = (glassFlags & 1) != 0
+        let glassInteractive = (glassFlags & 4) != 0
+        let glassClear       = (glassFlags & 8) != 0
+        let hasUserBg        = (node.style?.bgColor ?? 0) != 0
 
         let bg = isSelected ? theme.primary : theme.surfaceVariant
         let fg = isSelected ? theme.onPrimary : theme.onSurface
@@ -48,8 +62,14 @@ struct NativeUIChipRenderer: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .foregroundColor(fg)
-            .background(Capsule().fill(bg))
-            .overlay(Capsule().stroke(border, lineWidth: 1))
+            .modifier(ChipBackgroundModifier(
+                fillColor: bg,
+                borderColor: border,
+                glassEnabled: glassEnabled,
+                glassInteractive: glassInteractive,
+                glassClear: glassClear,
+                hasUserBg: hasUserBg
+            ))
         }
         .buttonStyle(.plain)
         .disabled(disabled)
@@ -70,6 +90,45 @@ struct NativeUIChipRenderer: View {
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
         .modifier(A11yLabelModifier(label: a11yLabel))
         .modifier(A11yHintModifier(hint: a11yHint))
+    }
+}
+
+/// Picks between solid capsule fill and Liquid Glass for the chip background.
+/// Border is always painted on top so the chip's selected/unselected state
+/// remains visible against either surface treatment.
+private struct ChipBackgroundModifier: ViewModifier {
+    let fillColor: Color
+    let borderColor: Color
+    let glassEnabled: Bool
+    let glassInteractive: Bool
+    let glassClear: Bool
+    /// True when the user supplied a `bg-*` class. Skip the state-driven
+    /// capsule fill so NodeStyleModifier's user-bg paint isn't covered.
+    let hasUserBg: Bool
+
+    func body(content: Content) -> some View {
+        let shape = Capsule()
+        let bordered = AnyView(
+            content.overlay(shape.stroke(borderColor, lineWidth: 1))
+        )
+
+        if glassEnabled, #available(iOS 26.0, *) {
+            if glassClear {
+                bordered.glassEffect(.clear.interactive(glassInteractive), in: shape)
+            } else {
+                bordered.glassEffect(.regular.interactive(glassInteractive), in: shape)
+            }
+        } else if glassEnabled {
+            bordered.background(
+                shape.fill(glassClear ? AnyShapeStyle(.ultraThinMaterial) : AnyShapeStyle(.regularMaterial))
+            )
+        } else if hasUserBg {
+            // User bg wins — paint nothing here, NodeStyleModifier already
+            // painted the user's color beneath us.
+            bordered
+        } else {
+            bordered.background(shape.fill(fillColor))
+        }
     }
 }
 

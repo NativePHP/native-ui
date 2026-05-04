@@ -241,6 +241,14 @@
             "self_closing": true
         },
         {
+            "type": "bare_text_input",
+            "element": "Nativephp\\NativeUi\\Elements\\BareTextInput",
+            "blade": "Nativephp\\NativeUi\\Components\\BareTextInput",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.BareTextInputRenderer",
+            "ios_renderer": "NativeUIBareTextInputRenderer",
+            "self_closing": true
+        },
+        {
             "type": "filled_text_input",
             "element": "Nativephp\\NativeUi\\Elements\\FilledTextInput",
             "blade": "Nativephp\\NativeUi\\Components\\FilledTextInput",

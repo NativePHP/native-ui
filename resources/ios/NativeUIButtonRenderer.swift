@@ -5,18 +5,39 @@ import SwiftUI
 /// Maps semantic `variant` prop to the matching SwiftUI button style:
 ///   - primary     → `.buttonStyle(.borderedProminent)` + `.tint(theme.primary)`
 ///   - secondary   → `.buttonStyle(.bordered)` + `.tint(theme.secondary)`
-///   - destructive → `Button(role: .destructive)` + `.buttonStyle(.borderedProminent)` + `.tint(theme.error)`
+///   - destructive → `.buttonStyle(.borderedProminent)` + `.tint(theme.destructive)`
+///   - accent      → `.buttonStyle(.borderedProminent)` + `.tint(theme.accent)`
 ///   - ghost       → `.buttonStyle(.plain)` + `.foregroundStyle(theme.primary)`
+///
+/// Tailwind `glass` family promotes the button to iOS 26's first-class
+/// glass styles when available, falling back to bordered styles on older iOS.
+/// Bitflag layout (matches `TailwindParser::parseGlassClass`):
+///
+///   bit 0 (1) — enabled
+///   bit 1 (2) — prominent → `.buttonStyle(.glassProminent)` instead of `.glass`
+///   bit 2 (4) — interactive (specular touch highlight; mostly redundant on
+///                buttons since the buttonStyle already provides press feedback)
+///
+/// Markup:
+///   class="glass"                       — regular glass
+///   class="glass:prominent"             — prominent (filled) glass
+///   class="glass:interactive"           — regular glass + interactive highlight
+///   class="glass:prominent:interactive" — both
+///
+/// `glass:clear` (bit 3) drops the button to `.buttonStyle(.plain)` and
+/// applies `.glassEffect(.clear, in: Capsule())` directly, since iOS 26
+/// doesn't ship a `.buttonStyle(.glassClear)`. The label keeps its
+/// variant-driven tint as the foreground color.
+///
+/// The variant's tint flows through both glass styles, so
+/// `<native:button class="glass:prominent" variant="destructive">` reads as a
+/// destructive-tinted prominent glass button on iOS 26+.
 ///
 /// All colors come from the `\.nativeUITheme` environment. No per-instance
 /// color/radius/shadow overrides are honored — that's intentional (plan doc
 /// Model 3). For full visual control, use `<native:pressable>`.
 struct NativeUIButtonRenderer: View {
     let node: NativeUINode
-    // Observe the shared store directly so PHP-pushed `NativeUI.Theme.Set`
-    // updates trigger re-render. Reading via `@Environment(\.nativeUITheme)`
-    // would be cleaner BUT nothing in the render tree provides it — so the
-    // env default (.fallback) would always win.
     @ObservedObject private var themeStore = NativeUITheme.shared
     @Environment(\.colorScheme) private var colorScheme
 
@@ -32,10 +53,23 @@ struct NativeUIButtonRenderer: View {
         let iconTrailing = p.getString("trailing_icon")
         let a11yLabel = p.getString("a11y_label")
         let a11yHint = p.getString("a11y_hint")
+        let glassFlags = p.getInt("glass", default: 0)
+        let glassEnabled    = (glassFlags & 1) != 0
+        let glassProminent  = (glassFlags & 2) != 0
+        let glassInteractive = (glassFlags & 4) != 0
+        let glassClear      = (glassFlags & 8) != 0
         let pressCb = p.getCallbackId("on_press") != 0 ? p.getCallbackId("on_press") : node.onPress
 
         let metrics = sizeMetrics(for: size, theme: theme)
         let enabled = !disabled && !loading
+
+        // Class-level text-size override. `text-xl` / `text-[28]` / etc.
+        // arrive as a `font_size` prop. When set (>0), it wins over the
+        // size-prop metric so authors can scale a button's label without
+        // touching `size`. iconSize is left at the size-driven default —
+        // changing icon size off the text scale would surprise users.
+        let classFontSize = CGFloat(p.getFloat("font_size"))
+        let textSize = classFontSize > 0 ? classFontSize : metrics.textSize
 
         let action = {
             if pressCb != 0 {
@@ -43,21 +77,140 @@ struct NativeUIButtonRenderer: View {
             }
         }
 
-        // Common content (icon + label + trailing icon, or a spinner + label when loading).
         let content = ButtonContent(
             label: label,
             icon: icon,
             iconTrailing: iconTrailing,
             loading: loading,
             iconSize: metrics.iconSize,
-            textSize: metrics.textSize
+            textSize: textSize
         )
 
-        // Variant-dispatched button. `.foregroundStyle(...)` is applied on the
-        // outer Button view, AFTER `.buttonStyle(...)`, so it overrides the
-        // auto-contrast content color SwiftUI picks internally (especially
-        // visible on `.bordered`, where the system otherwise flips text to
-        // black/white based on perceived tint luminance).
+        // Glass takes precedence over variant. iOS 26+ uses real `.glass` /
+        // `.glassProminent`; older iOS falls back to bordered styles tinted
+        // by variant — same UI hierarchy, no specular reflection.
+        if glassEnabled {
+            glassButton(
+                prominent: glassProminent,
+                interactive: glassInteractive,
+                clear: glassClear,
+                action: action,
+                content: content,
+                variant: variant,
+                theme: theme,
+                metrics: metrics,
+                enabled: enabled,
+                a11yLabel: a11yLabel,
+                a11yHint: a11yHint
+            )
+        } else {
+            variantButton(
+                action: action,
+                content: content,
+                variant: variant,
+                theme: theme,
+                metrics: metrics,
+                enabled: enabled,
+                a11yLabel: a11yLabel,
+                a11yHint: a11yHint
+            )
+        }
+    }
+
+    // MARK: - Glass path (iOS 26 first-class, older iOS bordered fallback)
+
+    @ViewBuilder
+    private func glassButton(
+        prominent: Bool,
+        interactive: Bool,
+        clear: Bool,
+        action: @escaping () -> Void,
+        content: ButtonContent,
+        variant: String,
+        theme: NativeUITokens,
+        metrics: SizeMetrics,
+        enabled: Bool,
+        a11yLabel: String,
+        a11yHint: String
+    ) -> some View {
+        let tint = tintForVariant(variant, theme: theme)
+        let onTint = onTintForVariant(variant, theme: theme)
+
+        // Note: `interactive` on a button is mostly redundant — the button
+        // already has built-in press feedback through SwiftUI's button styles.
+        // We still chain it through `.glassEffect()` underneath when set so
+        // the user gets the explicit specular highlight on press.
+        if #available(iOS 26.0, *) {
+            if clear {
+                // No `.buttonStyle(.glassClear)` exists — drop to plain and
+                // apply `.glassEffect(.clear)` directly. Variant tint flows
+                // through as the label's foreground color.
+                Button(action: action) { content.foregroundStyle(tint) }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .glassEffect(.clear.interactive(interactive), in: Capsule())
+                    .controlSize(metrics.controlSize)
+                    .disabled(!enabled)
+                    .modifier(A11yLabelModifier(label: a11yLabel))
+                    .modifier(A11yHintModifier(hint: a11yHint))
+            } else if prominent {
+                Button(action: action) { content }
+                    .buttonStyle(.glassProminent)
+                    .tint(tint)
+                    .foregroundStyle(onTint)
+                    .controlSize(metrics.controlSize)
+                    .disabled(!enabled)
+                    .modifier(A11yLabelModifier(label: a11yLabel))
+                    .modifier(A11yHintModifier(hint: a11yHint))
+            } else {
+                Button(action: action) { content }
+                    .buttonStyle(.glass)
+                    .tint(tint)
+                    .controlSize(metrics.controlSize)
+                    .disabled(!enabled)
+                    .modifier(A11yLabelModifier(label: a11yLabel))
+                    .modifier(A11yHintModifier(hint: a11yHint))
+            }
+        } else {
+            // Pre-iOS 26 fallback. `.borderedProminent` for prominent (filled),
+            // `.bordered` otherwise (light translucent chrome). Variant tint
+            // still applies so `glass:prominent` + `variant="destructive"`
+            // reads as a destructive button on older iOS too.
+            if prominent {
+                Button(action: action) { content }
+                    .buttonStyle(.borderedProminent)
+                    .tint(tint)
+                    .foregroundStyle(onTint)
+                    .controlSize(metrics.controlSize)
+                    .disabled(!enabled)
+                    .modifier(A11yLabelModifier(label: a11yLabel))
+                    .modifier(A11yHintModifier(hint: a11yHint))
+            } else {
+                Button(action: action) { content }
+                    .buttonStyle(.bordered)
+                    .tint(tint)
+                    .controlSize(metrics.controlSize)
+                    .disabled(!enabled)
+                    .modifier(A11yLabelModifier(label: a11yLabel))
+                    .modifier(A11yHintModifier(hint: a11yHint))
+            }
+        }
+    }
+
+    // MARK: - Variant path (existing behaviour, unchanged)
+
+    @ViewBuilder
+    private func variantButton(
+        action: @escaping () -> Void,
+        content: ButtonContent,
+        variant: String,
+        theme: NativeUITokens,
+        metrics: SizeMetrics,
+        enabled: Bool,
+        a11yLabel: String,
+        a11yHint: String
+    ) -> some View {
         switch variant {
         case "secondary":
             Button(action: action) { content }
@@ -91,6 +244,16 @@ struct NativeUIButtonRenderer: View {
                 .modifier(A11yLabelModifier(label: a11yLabel))
                 .modifier(A11yHintModifier(hint: a11yHint))
 
+        case "accent":
+            Button(action: action) { content }
+                .buttonStyle(.borderedProminent)
+                .tint(theme.accent)
+                .foregroundStyle(theme.onAccent)
+                .controlSize(metrics.controlSize)
+                .disabled(!enabled)
+                .modifier(A11yLabelModifier(label: a11yLabel))
+                .modifier(A11yHintModifier(hint: a11yHint))
+
         default: // "primary" and any unknown value
             Button(action: action) { content }
                 .buttonStyle(.borderedProminent)
@@ -103,7 +266,29 @@ struct NativeUIButtonRenderer: View {
         }
     }
 
-    // ─── Size metrics ────────────────────────────────────────────────────────
+    // MARK: - Tint helpers (glass path only — variant path uses tints inline)
+
+    private func tintForVariant(_ variant: String, theme: NativeUITokens) -> Color {
+        switch variant {
+        case "secondary":   return theme.secondary
+        case "destructive": return theme.destructive
+        case "accent":      return theme.accent
+        case "ghost":       return theme.primary
+        default:            return theme.primary
+        }
+    }
+
+    private func onTintForVariant(_ variant: String, theme: NativeUITokens) -> Color {
+        switch variant {
+        case "secondary":   return theme.onSecondary
+        case "destructive": return theme.onDestructive
+        case "accent":      return theme.onAccent
+        case "ghost":       return theme.primary
+        default:            return theme.onPrimary
+        }
+    }
+
+    // MARK: - Size metrics
 
     private struct SizeMetrics {
         let controlSize: ControlSize

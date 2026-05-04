@@ -94,8 +94,17 @@ struct NativeUIOutlinedTextInputRenderer: View {
             .padding(.horizontal, metrics.hPadding)
             .padding(.vertical, metrics.vPadding)
             .background(
-                RoundedRectangle(cornerRadius: theme.radiusMd, style: .continuous)
-                    .stroke(borderColor, lineWidth: isError ? 2 : 1)
+                // Honor user-supplied border radius via class (e.g.
+                // `rounded-full` → 9999 → Capsule shape). Falls back to
+                // Material 3's outlined default (theme.radiusMd ≈ 4pt)
+                // when no class radius is set.
+                RoundedRectangle(
+                    cornerRadius: (node.style?.borderRadius ?? 0) > 0
+                        ? CGFloat(node.style!.borderRadius)
+                        : theme.radiusMd,
+                    style: .continuous
+                )
+                .stroke(borderColor, lineWidth: isError ? 2 : 1)
             )
             .opacity(disabled ? 0.6 : 1.0)
             .allowsHitTesting(!disabled && !readOnly)

@@ -31,6 +31,11 @@ class Badge extends Element
 
     public function applyAttributes(array $attrs): void
     {
+        // Default to capsule radius so the outer wrapper clips bg paint to
+        // the badge's actual rounded shape — see Card.php for the full
+        // rationale.
+        $this->borderRadius(9999);
+
         if (isset($attrs['count']))   { $this->count((int) $attrs['count']); }
         if (isset($attrs['label']))   { $this->label($attrs['label']); }
         if (isset($attrs['variant'])) { $this->variant((string) $attrs['variant']); }
