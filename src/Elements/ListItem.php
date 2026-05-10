@@ -4,6 +4,10 @@ namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Edge\Layouts\Builders\NavAction;
+use Native\Mobile\Icon\IconResolver;
+use Native\Mobile\Icon\MaterialSymbol;
+use Native\Mobile\Icon\SFSymbol;
 
 class ListItem extends Element
 {
@@ -78,6 +82,36 @@ class ListItem extends Element
             $this->trailingIconButton($attrs['trailingIconButton']);
         }
 
+        // Optional `:trailing-menu` attribute attaches a tap-to-open menu
+        // to the row's trailing slot. The renderer wraps the existing
+        // trailing icon button in a Menu (iOS) / DropdownMenu (Android).
+        // Combine with `trailingIconButton="ellipsis"` to control the
+        // glyph; if unset the renderer picks a sensible default.
+        //
+        // The Blade precompiler keeps attribute names verbatim, so a
+        // kebab-case Blade attr (`:trailing-menu`) lands as
+        // `$attrs['trailing-menu']`. Accept both spellings, matching the
+        // pattern used elsewhere (`a11y-label` / `a11yLabel`, etc.).
+        $trailingMenu = $attrs['trailing-menu'] ?? $attrs['trailingMenu'] ?? null;
+        if (is_array($trailingMenu) && ! empty($trailingMenu)) {
+            foreach ($trailingMenu as $item) {
+                if ($item instanceof NavAction) {
+                    $this->addChild($item->toElement());
+                } elseif ($item instanceof Element) {
+                    $this->addChild($item);
+                }
+            }
+            $this->listItemProps['has_trailing_menu'] = true;
+            // Default trailing slot to icon_button if the dev didn't
+            // specify one, so there's something to anchor the menu to.
+            // Use `ellipsis` — valid SF symbol, and Android's IconHelper
+            // aliases it to `more_horiz` so both platforms get a glyph.
+            if (! isset($this->listItemProps['trailing_type'])) {
+                $this->listItemProps['trailing_type'] = 'icon_button';
+                $this->listItemProps['trailing_value'] = 'ellipsis';
+            }
+        }
+
         // Color attributes
         if (isset($attrs['headlineColor'])) {
             $this->headlineColor($attrs['headlineColor']);
@@ -145,11 +179,20 @@ class ListItem extends Element
 
     // ── Leading content ──────────────────────────────
 
-    public function leadingIcon(string $icon): static
-    {
-        $this->listItemProps['leading_type'] = 'icon';
-        $this->listItemProps['leading_value'] = $icon;
-        $this->listItemProps['leading_icon'] = $icon;
+    public function leadingIcon(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->listItemProps['leading_type'] = 'icon';
+            $this->listItemProps['leading_value'] = $r['icon'];
+            $this->listItemProps['leading_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->listItemProps['leading_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }
@@ -199,11 +242,20 @@ class ListItem extends Element
 
     // ── Trailing content ─────────────────────────────
 
-    public function trailingIcon(string $icon): static
-    {
-        $this->listItemProps['trailing_type'] = 'icon';
-        $this->listItemProps['trailing_value'] = $icon;
-        $this->listItemProps['trailing_icon'] = $icon;
+    public function trailingIcon(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->listItemProps['trailing_type'] = 'icon';
+            $this->listItemProps['trailing_value'] = $r['icon'];
+            $this->listItemProps['trailing_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->listItemProps['trailing_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }
@@ -232,10 +284,19 @@ class ListItem extends Element
         return $this;
     }
 
-    public function trailingIconButton(string $icon): static
-    {
-        $this->listItemProps['trailing_type'] = 'icon_button';
-        $this->listItemProps['trailing_value'] = $icon;
+    public function trailingIconButton(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->listItemProps['trailing_type'] = 'icon_button';
+            $this->listItemProps['trailing_value'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->listItemProps['trailing_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }

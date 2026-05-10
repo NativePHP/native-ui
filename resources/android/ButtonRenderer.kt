@@ -1,6 +1,7 @@
 package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -8,11 +9,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -55,6 +61,7 @@ object ButtonRenderer {
         val a11yLabel = p.getString("a11y_label")
         val a11yHint = p.getString("a11y_hint")
         val pressCb = p.getCallbackId("on_press").let { if (it != 0) it else node.onPress }
+        val hasMenu = p.getBool("has_menu")
 
         // Read the active token set from the shared store. Using the singleton
         // rather than a CompositionLocal because nothing in the render tree
@@ -63,7 +70,14 @@ object ButtonRenderer {
         val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
         val metrics = sizeMetrics(size, theme)
 
-        val onClick = { if (pressCb != 0) NativeUIBridge.sendPressEvent(pressCb, node.id) }
+        // When `:menu` is set, tap toggles the dropdown anchored to the
+        // button. The PHP-side @press handler is shadowed (menu wins).
+        var menuExpanded by remember { mutableStateOf(false) }
+        val onClick: () -> Unit = if (hasMenu) {
+            { menuExpanded = true }
+        } else {
+            { if (pressCb != 0) NativeUIBridge.sendPressEvent(pressCb, node.id) }
+        }
 
         val buttonModifier = modifier
             .defaultMinSize(minHeight = metrics.minHeight)
@@ -87,52 +101,78 @@ object ButtonRenderer {
 
         val enabled = !disabled && !loading
 
-        when (variant) {
-            "secondary" -> FilledTonalButton(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = buttonModifier,
-                contentPadding = metrics.contentPadding,
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = theme.secondary,
-                    contentColor = theme.onSecondary,
-                ),
-                content = { content() },
-            )
+        // The variant switch is wrapped in a small composable lambda so we
+        // can render it twice — once raw (no menu) and once anchored
+        // inside a Box (with DropdownMenu) when `:menu` is attached.
+        val buttonByVariant: @Composable () -> Unit = {
+            when (variant) {
+                "secondary" -> FilledTonalButton(
+                    onClick = onClick,
+                    enabled = enabled,
+                    modifier = buttonModifier,
+                    contentPadding = metrics.contentPadding,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = theme.secondary,
+                        contentColor = theme.onSecondary,
+                    ),
+                    content = { content() },
+                )
 
-            "destructive" -> Button(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = buttonModifier,
-                contentPadding = metrics.contentPadding,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = theme.destructive,
-                    contentColor = theme.onDestructive,
-                ),
-                content = { content() },
-            )
+                "destructive" -> Button(
+                    onClick = onClick,
+                    enabled = enabled,
+                    modifier = buttonModifier,
+                    contentPadding = metrics.contentPadding,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.destructive,
+                        contentColor = theme.onDestructive,
+                    ),
+                    content = { content() },
+                )
 
-            "ghost" -> TextButton(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = buttonModifier,
-                contentPadding = metrics.contentPadding,
-                colors = ButtonDefaults.textButtonColors(contentColor = theme.primary),
-                content = { content() },
-            )
+                "ghost" -> TextButton(
+                    onClick = onClick,
+                    enabled = enabled,
+                    modifier = buttonModifier,
+                    contentPadding = metrics.contentPadding,
+                    colors = ButtonDefaults.textButtonColors(contentColor = theme.primary),
+                    content = { content() },
+                )
 
-            // "primary" (default) and any unknown value fall through to filled primary.
-            else -> Button(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = buttonModifier,
-                contentPadding = metrics.contentPadding,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = theme.primary,
-                    contentColor = theme.onPrimary,
-                ),
-                content = { content() },
-            )
+                // "primary" (default) and any unknown value fall through to filled primary.
+                else -> Button(
+                    onClick = onClick,
+                    enabled = enabled,
+                    modifier = buttonModifier,
+                    contentPadding = metrics.contentPadding,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.primary,
+                        contentColor = theme.onPrimary,
+                    ),
+                    content = { content() },
+                )
+            }
+        }
+
+        if (hasMenu) {
+            // Box anchors the DropdownMenu to the button. The Box has no
+            // visible footprint of its own — it wraps the button so the
+            // menu can position itself relative to the button's bounds.
+            Box {
+                buttonByVariant()
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
+                ) {
+                    node.children
+                        .filter { it.type == "top_bar_action" }
+                        .forEach { item ->
+                            renderAttachedMenuItem(item) { menuExpanded = false }
+                        }
+                }
+            }
+        } else {
+            buttonByVariant()
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace Nativephp\NativeUi\Elements;
 
+use Native\Mobile\Concerns\HasPlatformIcon;
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
@@ -14,6 +15,8 @@ use Native\Mobile\Edge\Element;
  */
 class Chip extends Element
 {
+    use HasPlatformIcon;
+
     protected string $type = 'chip';
 
     /** @var array<string, mixed> */
@@ -73,13 +76,6 @@ class Chip extends Element
         return $this;
     }
 
-    public function icon(string $icon): static
-    {
-        $this->chipProps['icon'] = $icon;
-
-        return $this;
-    }
-
     public function disabled(bool $value = true): static
     {
         $this->chipProps['disabled'] = $value;
@@ -118,6 +114,13 @@ class Chip extends Element
     protected function resolveProps(CallbackRegistry $registry): array
     {
         $props = $this->chipProps;
+
+        if (($icon = $this->resolvedIcon()) !== null) {
+            $props['icon'] = $icon;
+            if (($variant = $this->resolvedMaterialVariant()) !== null) {
+                $props['material_variant'] = $variant;
+            }
+        }
 
         if ($this->changeCallback !== null) {
             $props['on_change'] = $registry->register($this->changeCallback);

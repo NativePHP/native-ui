@@ -42,6 +42,21 @@ struct NativeUIButtonRenderer: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
+        let hasMenu = node.props.getBool("has_menu")
+        if hasMenu {
+            let items = node.children.filter { $0.type == "top_bar_action" }
+            Menu {
+                ForEach(items) { item in buttonMenuItem(item) }
+            } label: {
+                buttonBody()
+            }
+        } else {
+            buttonBody()
+        }
+    }
+
+    @ViewBuilder
+    private func buttonBody() -> some View {
         let theme = themeStore.resolve(for: colorScheme)
         let p = node.props
         let variant = p.getString("variant", default: "primary")
@@ -358,5 +373,30 @@ private struct A11yHintModifier: ViewModifier {
     func body(content: Content) -> some View {
         if hint.isEmpty { content }
         else { content.accessibilityHint(hint) }
+    }
+}
+
+/// Render one menu item attached to a Button via `:menu`. Mirrors the
+/// pattern used by `pressableMenuItem` and `TopBarActionView`.
+@ViewBuilder
+private func buttonMenuItem(_ item: NativeUINode) -> some View {
+    if item.props.getBool("divider") {
+        Divider()
+    } else {
+        let label = item.props.getString("label", default: "")
+        let icon = item.props.getString("icon", default: "")
+        let isDestructive = item.props.getBool("destructive")
+        Button(role: isDestructive ? .destructive : nil) {
+            if item.onPress != 0 {
+                NativeElementBridge.sendPressEvent(item.onPress, nodeId: item.id)
+            }
+        } label: {
+            if !icon.isEmpty {
+                Label(label, systemImage: getIconForName(icon))
+            } else {
+                Text(label)
+            }
+        }
+        .tint(isDestructive ? .red : nil)
     }
 }

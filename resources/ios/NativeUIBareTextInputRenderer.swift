@@ -38,11 +38,29 @@ struct NativeUIBareTextInputRenderer: View {
             }
         }()
 
+        // Per-instance color override — bare variant only (Model 3 stays
+        // for outlined / filled). `dark_color` is the dark-mode companion
+        // auto-derived by the collector from a `dark:text-*` class.
+        let darkOverrideArgb = colorScheme == .dark ? p.getColor("dark_color", default: 0) : 0
+        let lightOverrideArgb = p.getColor("color", default: 0)
+        let hasOverride = darkOverrideArgb != 0 || lightOverrideArgb != 0
+        let baseTextColor: Color = {
+            if darkOverrideArgb != 0 { return Color(argb: darkOverrideArgb) }
+            if lightOverrideArgb != 0 { return Color(argb: lightOverrideArgb) }
+            return theme.onSurface
+        }()
+
+        let resolvedTint: Color = {
+            if isError { return theme.destructive }
+            if hasOverride { return baseTextColor }
+            return theme.primary
+        }()
+
         NativeUITextInputCore(
             node: node,
             textSize: textSize,
-            contentColor: disabled ? theme.onSurface.opacity(0.6) : theme.onSurface,
-            tintColor: isError ? theme.destructive : theme.primary
+            contentColor: disabled ? baseTextColor.opacity(0.6) : baseTextColor,
+            tintColor: resolvedTint
         )
         .opacity(disabled ? 0.6 : 1.0)
         .allowsHitTesting(!disabled && !readOnly)

@@ -3,7 +3,49 @@ import SwiftUI
 struct NativeUIPressableRenderer: View {
     let node: NativeUINode
     var body: some View {
-        NativeUIColumnRenderer(node: node)
+        if node.props.getBool("has_menu") {
+            // `:menu` attribute attached — wrap the pressable's content
+            // as a SwiftUI Menu's label. SwiftUI's Menu absorbs taps to
+            // open the dropdown, so the @press handler is naturally
+            // shadowed (matches the locked-in spec). On iOS 26+ the menu
+            // gets Liquid Glass for free.
+            let items = node.children.filter { $0.type == "top_bar_action" }
+            Menu {
+                ForEach(items) { item in
+                    pressableMenuItem(item)
+                }
+            } label: {
+                NativeUIColumnRenderer(node: node)
+                    .contentShape(Rectangle())
+            }
+        } else {
+            NativeUIColumnRenderer(node: node)
+        }
+    }
+}
+
+/// Render one menu item as either a Button or a Divider, mirroring the
+/// `TopBarActionView` dropdown pattern from `NativeRootStackRenderer`.
+@ViewBuilder
+private func pressableMenuItem(_ item: NativeUINode) -> some View {
+    if item.props.getBool("divider") {
+        Divider()
+    } else {
+        let label = item.props.getString("label", default: "")
+        let icon = item.props.getString("icon", default: "")
+        let isDestructive = item.props.getBool("destructive")
+        Button(role: isDestructive ? .destructive : nil) {
+            if item.onPress != 0 {
+                NativeElementBridge.sendPressEvent(item.onPress, nodeId: item.id)
+            }
+        } label: {
+            if !icon.isEmpty {
+                Label(label, systemImage: getIconForName(icon))
+            } else {
+                Text(label)
+            }
+        }
+        .tint(isDestructive ? .red : nil)
     }
 }
 

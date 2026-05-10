@@ -4,6 +4,10 @@ namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Edge\Layouts\Builders\NavAction;
+use Native\Mobile\Icon\IconResolver;
+use Native\Mobile\Icon\MaterialSymbol;
+use Native\Mobile\Icon\SFSymbol;
 
 /**
  * Native button.
@@ -76,6 +80,20 @@ class Button extends Element
         if (isset($attrs['a11y-hint']) || isset($attrs['a11yHint'])) {
             $this->a11yHint($attrs['a11y-hint'] ?? $attrs['a11yHint']);
         }
+
+        // Optional tap-to-open dropdown menu — see Pressable.php for the
+        // wire shape. When `:menu` is set, tapping shadows `@press` and
+        // opens the menu instead.
+        if (isset($attrs['menu']) && is_array($attrs['menu']) && ! empty($attrs['menu'])) {
+            foreach ($attrs['menu'] as $item) {
+                if ($item instanceof NavAction) {
+                    $this->addChild($item->toElement());
+                } elseif ($item instanceof Element) {
+                    $this->addChild($item);
+                }
+            }
+            $this->buttonProps['has_menu'] = true;
+        }
     }
 
     /** primary | secondary | destructive | ghost. Default: primary. */
@@ -108,21 +126,41 @@ class Button extends Element
         return $this;
     }
 
-    public function icon(string $name): static
-    {
-        // Stored as `leading_icon` to match the interned prop key table
-        // (NPUI_KEY_LEADING_ICON = 37). Using an interned key means the prop
-        // transmits as a 1-byte index rather than the fallback length-prefixed
-        // string path, which is slightly faster and less error-prone.
-        $this->buttonProps['leading_icon'] = $name;
+    /**
+     * Leading icon. Resolved per-platform — pass `sf:` and/or `material:`
+     * for cross-platform parity. Stored as `leading_icon` to match the
+     * interned prop key table (NPUI_KEY_LEADING_ICON = 37); the optional
+     * `leading_icon_variant` companion ('filled' / 'outlined') tells the
+     * Compose `MaterialIcon` composable which font to use.
+     */
+    public function icon(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->buttonProps['leading_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->buttonProps['leading_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }
 
-    public function iconTrailing(string $name): static
-    {
-        // Stored as `trailing_icon` to match the interned prop key (38).
-        $this->buttonProps['trailing_icon'] = $name;
+    public function iconTrailing(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->buttonProps['trailing_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->buttonProps['trailing_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }

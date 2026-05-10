@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -154,7 +155,9 @@ object ListItemRenderer {
                 onChangeCb = onTrailingChangeCb,
                 onPressCb = onTrailingPressCb,
                 nodeId = node.id,
-                disabled = disabled
+                disabled = disabled,
+                hasMenu = p.getBool("has_trailing_menu"),
+                menuItems = node.children.filter { it.type == "top_bar_action" },
             ),
             colors = colors,
             tonalElevation = tonalElevation.dp,
@@ -299,7 +302,9 @@ object ListItemRenderer {
         onChangeCb: Int,
         onPressCb: Int,
         nodeId: Int,
-        disabled: Boolean
+        disabled: Boolean,
+        hasMenu: Boolean = false,
+        menuItems: List<NativeUINode> = emptyList(),
     ): (@Composable () -> Unit)? {
         val effectiveType = type.ifEmpty {
             if (fallbackIcon.isNotEmpty()) "icon" else return null
@@ -349,20 +354,48 @@ object ListItemRenderer {
                     )
                 }
                 "icon_button" -> {
-                    IconButton(
-                        onClick = {
-                            if (onPressCb != 0) {
-                                NativeUIBridge.sendPressEvent(onPressCb, nodeId)
+                    if (hasMenu) {
+                        // `:trailing-menu` attached — IconButton becomes a
+                        // DropdownMenu trigger. The on_trailing_press
+                        // callback is shadowed (menu wins).
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(
+                                onClick = { menuExpanded = true },
+                                enabled = !disabled,
+                            ) {
+                                com.nativephp.mobile.ui.MaterialIcon(
+                                    name = effectiveValue,
+                                    contentDescription = effectiveValue,
+                                    size = 24.dp,
+                                    tint = if (iconColor != 0) Color(iconColor) else Color.Unspecified,
+                                )
                             }
-                        },
-                        enabled = !disabled
-                    ) {
-                        com.nativephp.mobile.ui.MaterialIcon(
-                            name = effectiveValue,
-                            contentDescription = effectiveValue,
-                            size = 24.dp,
-                            tint = if (iconColor != 0) Color(iconColor) else Color.Unspecified
-                        )
+                            DropdownMenu(
+                                expanded = menuExpanded,
+                                onDismissRequest = { menuExpanded = false },
+                            ) {
+                                menuItems.forEach { item ->
+                                    renderAttachedMenuItem(item) { menuExpanded = false }
+                                }
+                            }
+                        }
+                    } else {
+                        IconButton(
+                            onClick = {
+                                if (onPressCb != 0) {
+                                    NativeUIBridge.sendPressEvent(onPressCb, nodeId)
+                                }
+                            },
+                            enabled = !disabled
+                        ) {
+                            com.nativephp.mobile.ui.MaterialIcon(
+                                name = effectiveValue,
+                                contentDescription = effectiveValue,
+                                size = 24.dp,
+                                tint = if (iconColor != 0) Color(iconColor) else Color.Unspecified
+                            )
+                        }
                     }
                 }
             }

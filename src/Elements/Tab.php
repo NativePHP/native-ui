@@ -2,6 +2,7 @@
 
 namespace Nativephp\NativeUi\Elements;
 
+use Native\Mobile\Concerns\HasPlatformIcon;
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
@@ -11,6 +12,8 @@ use Native\Mobile\Edge\Element;
  */
 class Tab extends Element
 {
+    use HasPlatformIcon;
+
     protected string $type = 'tab';
 
     /** @var array<string, mixed> */
@@ -36,16 +39,17 @@ class Tab extends Element
         }
     }
 
-    public function icon(string $icon): static
-    {
-        $this->tabProps['icon'] = $icon;
-
-        return $this;
-    }
-
     protected function resolveProps(CallbackRegistry $registry): array
     {
-        return $this->tabProps;
+        $props = $this->tabProps;
+        if (($icon = $this->resolvedIcon()) !== null) {
+            $props['icon'] = $icon;
+            if (($variant = $this->resolvedMaterialVariant()) !== null) {
+                $props['material_variant'] = $variant;
+            }
+        }
+
+        return $props;
     }
 
     // ── Model 3 enforcement ──────────────────────────────────────────────────

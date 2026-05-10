@@ -4,6 +4,9 @@ namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Icon\IconResolver;
+use Native\Mobile\Icon\MaterialSymbol;
+use Native\Mobile\Icon\SFSymbol;
 
 /**
  * Shared base for the text input variants (`outlined-text-input`,
@@ -220,16 +223,34 @@ abstract class BaseTextInput extends Element
         return $this;
     }
 
-    public function leadingIcon(string $name): static
-    {
-        $this->inputProps['leading_icon'] = $name;
+    public function leadingIcon(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->inputProps['leading_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->inputProps['leading_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }
 
-    public function trailingIcon(string $name): static
-    {
-        $this->inputProps['trailing_icon'] = $name;
+    public function trailingIcon(
+        ?string $name = null,
+        SFSymbol|string|null $sf = null,
+        MaterialSymbol|string|null $material = null,
+    ): static {
+        $r = IconResolver::resolve($name, $sf, $material);
+        if ($r['icon'] !== null) {
+            $this->inputProps['trailing_icon'] = $r['icon'];
+            if ($r['variant'] !== null) {
+                $this->inputProps['trailing_icon_variant'] = $r['variant'];
+            }
+        }
 
         return $this;
     }

@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.nativephp.mobile.ui.nativerender.NativeUINode
 import com.nativephp.mobile.ui.nativerender.RenderNode
-import com.nativephp.mobile.ui.nativerender.buildModifier
 
 object CarouselRenderer {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -34,10 +33,7 @@ object CarouselRenderer {
                     modifier = modifier
                 ) { index ->
                     val child = node.children[index]
-                    RenderNode(
-                        child,
-                        buildModifier(child).clip(MaterialTheme.shapes.extraLarge)
-                    )
+                    RenderNode(child, Modifier.clip(MaterialTheme.shapes.extraLarge))
                 }
             }
             else -> {
@@ -48,10 +44,7 @@ object CarouselRenderer {
                     modifier = modifier
                 ) { index ->
                     val child = node.children[index]
-                    RenderNode(
-                        child,
-                        buildModifier(child).clip(MaterialTheme.shapes.extraLarge)
-                    )
+                    RenderNode(child, Modifier.clip(MaterialTheme.shapes.extraLarge))
                 }
             }
         }

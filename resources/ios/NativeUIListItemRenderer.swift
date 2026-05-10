@@ -125,15 +125,39 @@ struct NativeUIListItemRenderer: View {
             Text(value)
                 .foregroundColor(textColor != 0 ? Color(argb: textColor) : .secondary)
         case "icon_button":
-            Button(action: {
-                let onPressCb = node.props.getCallbackId("on_trailing_press")
-                if onPressCb != 0 {
-                    NativeUIBridge.sendPressEvent(onPressCb, nodeId: node.id)
+            // When the row has `:trailing-menu` attached, the trailing
+            // icon button becomes a Menu trigger instead of a plain
+            // press. SwiftUI Menu absorbs the tap to open the dropdown,
+            // so the on_trailing_press handler is naturally shadowed
+            // (matches the spec — menu wins).
+            if node.props.getBool("has_trailing_menu") {
+                let menuItems = node.children.filter { $0.type == "top_bar_action" }
+                Menu {
+                    ForEach(menuItems) { item in
+                        listItemMenuItem(item)
+                    }
+                } label: {
+                    // `.contentShape(Rectangle())` expands the tap target
+                    // to the full 24×24 frame; without it only the
+                    // symbol's opaque pixels respond, which makes the
+                    // ellipsis glyph (mostly empty space) almost
+                    // un-tappable.
+                    Image(systemName: getIconForName(value))
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(iconColor != 0 ? Color(argb: iconColor) : .secondary)
+                        .contentShape(Rectangle())
                 }
-            }) {
-                Image(systemName: getIconForName(value))
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(iconColor != 0 ? Color(argb: iconColor) : .secondary)
+            } else {
+                Button(action: {
+                    let onPressCb = node.props.getCallbackId("on_trailing_press")
+                    if onPressCb != 0 {
+                        NativeUIBridge.sendPressEvent(onPressCb, nodeId: node.id)
+                    }
+                }) {
+                    Image(systemName: getIconForName(value))
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(iconColor != 0 ? Color(argb: iconColor) : .secondary)
+                }
             }
         case "switch":
             EmptyView() // Switch requires state management - handled at a higher level
@@ -143,5 +167,30 @@ struct NativeUIListItemRenderer: View {
         default:
             EmptyView()
         }
+    }
+}
+
+/// Render one menu item attached via `:trailing-menu`. Same shape as
+/// `pressableMenuItem` / `buttonMenuItem`.
+@ViewBuilder
+private func listItemMenuItem(_ item: NativeUINode) -> some View {
+    if item.props.getBool("divider") {
+        Divider()
+    } else {
+        let label = item.props.getString("label", default: "")
+        let icon = item.props.getString("icon", default: "")
+        let isDestructive = item.props.getBool("destructive")
+        Button(role: isDestructive ? .destructive : nil) {
+            if item.onPress != 0 {
+                NativeUIBridge.sendPressEvent(item.onPress, nodeId: item.id)
+            }
+        } label: {
+            if !icon.isEmpty {
+                Label(label, systemImage: getIconForName(icon))
+            } else {
+                Text(label)
+            }
+        }
+        .tint(isDestructive ? .red : nil)
     }
 }

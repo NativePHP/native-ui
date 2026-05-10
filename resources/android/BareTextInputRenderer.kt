@@ -12,9 +12,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.sp
 import com.nativephp.mobile.ui.nativerender.NativeUINode
+import com.nativephp.mobile.ui.nativerender.argbToComposeColor
 import com.nativephp.plugins.native_ui.NativeUITheme
 
 /**
@@ -24,13 +26,42 @@ import com.nativephp.plugins.native_ui.NativeUITheme
  * surrounding container provides the visible chrome (chat input pill,
  * search bar, inline edit field, etc.).
  *
- * Colors come from [NativeUITheme]; no per-instance overrides.
+ * Colors default to [NativeUITheme] tokens. Unlike outlined / filled
+ * (Model 3, theme-only), the bare variant accepts a per-instance
+ * `color` (with optional `dark_color` companion) so callers can
+ * guarantee contrast against custom-painted chrome — chat-input pills
+ * with `bg-white` need a dark text color regardless of system mode.
+ *   - explicit attribute:  `color="#334155"`
+ *   - tailwind class on the input: `class="text-slate-700"`
+ *   - dark mode: `class="text-slate-700 dark:text-slate-300"`
  */
 object BareTextInputRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
         val props = parseTextInputProps(node)
-        val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
+        val isDark = isSystemInDarkTheme()
+        val theme = if (isDark) NativeUITheme.dark else NativeUITheme.light
+
+        // Per-instance color override. `color` is the light value;
+        // `dark_color` is the dark companion (collector auto-maps from
+        // a `dark:text-*` class). Either may be unset (0).
+        val darkOverrideArgb = if (isDark) node.props.getColor("dark_color", 0) else 0
+        val colorArgb = node.props.getColor("color", 0)
+        val effectiveTextColor: Color = when {
+            darkOverrideArgb != 0 -> argbToComposeColor(darkOverrideArgb)
+            colorArgb != 0 -> argbToComposeColor(colorArgb)
+            else -> theme.onSurface
+        }
+        val displayedTextColor = if (props.disabled) effectiveTextColor.copy(alpha = 0.6f) else effectiveTextColor
+
+        // Placeholder follows the override too (faded by ~60%) so a
+        // dark-text input on a light pill keeps a readable placeholder
+        // in the same family.
+        val placeholderColor = if (colorArgb != 0 || darkOverrideArgb != 0) {
+            effectiveTextColor.copy(alpha = 0.6f)
+        } else {
+            theme.onSurfaceVariant
+        }
 
         // Echo-prevention sync — same shape as the outlined variant.
         var text by remember { mutableStateOf(props.serverValue) }
@@ -55,16 +86,22 @@ object BareTextInputRenderer {
             enabled = !props.disabled,
             readOnly = props.readOnly,
             textStyle = LocalTextStyle.current.copy(
-                color = if (props.disabled) theme.onSurface.copy(alpha = 0.6f) else theme.onSurface,
+                color = displayedTextColor,
                 fontSize = props.textSize.sp
             ),
-            cursorBrush = SolidColor(if (props.isError) theme.destructive else theme.primary),
+            cursorBrush = SolidColor(
+                when {
+                    props.isError -> theme.destructive
+                    colorArgb != 0 || darkOverrideArgb != 0 -> effectiveTextColor
+                    else -> theme.primary
+                }
+            ),
             singleLine = !props.multiline,
             decorationBox = { innerTextField ->
                 if (text.isEmpty() && props.placeholder.isNotEmpty()) {
                     Text(
                         text = props.placeholder,
-                        color = theme.onSurfaceVariant,
+                        color = placeholderColor,
                         fontSize = props.textSize.sp
                     )
                 }

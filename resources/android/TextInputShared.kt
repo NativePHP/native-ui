@@ -57,6 +57,7 @@ internal data class TextInputProps(
     val a11yLabel: String,
     val a11yHint: String,
     val serverValue: String,
+    val nodeId: Int,
     val onChangeCb: Int,
     val onSubmitCb: Int,
     val syncMode: SyncMode,
@@ -66,6 +67,28 @@ internal data class TextInputProps(
     val visualTransformation: VisualTransformation
         get() = if (secure) PasswordVisualTransformation() else VisualTransformation.None
     val singleLine: Boolean get() = !multiline
+
+    /** Numeric sp size for the chromeless variant. Tracks token fallbacks. */
+    val textSize: Int get() = when (size) {
+        "sm" -> 14
+        "lg" -> 20
+        else -> 16
+    }
+
+    /**
+     * Direct bridge dispatchers for the chromeless variant — no sync-mode
+     * policy, every change forwards immediately. Outlined / filled go through
+     * [TextInputDispatcher] instead.
+     */
+    val dispatchChange: ((String) -> Unit)?
+        get() = if (onChangeCb != 0) {
+            { value -> NativeUIBridge.sendTextChangeEvent(onChangeCb, nodeId, value) }
+        } else null
+
+    val dispatchSubmit: ((String) -> Unit)?
+        get() = if (onSubmitCb != 0) {
+            { value -> NativeUIBridge.sendSubmitEvent(onSubmitCb, nodeId, value) }
+        } else null
 }
 
 internal fun parseTextInputProps(node: NativeUINode): TextInputProps {
@@ -92,6 +115,7 @@ internal fun parseTextInputProps(node: NativeUINode): TextInputProps {
         a11yLabel    = p.getString("a11y_label"),
         a11yHint     = p.getString("a11y_hint"),
         serverValue  = p.getString("value"),
+        nodeId       = node.id,
         onChangeCb   = p.getCallbackId("on_change"),
         onSubmitCb   = p.getCallbackId("on_submit"),
         syncMode     = parseSyncMode(p.getString("sync_mode", "live")),

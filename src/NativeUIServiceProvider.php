@@ -4,6 +4,7 @@ namespace Nativephp\NativeUi;
 
 use Illuminate\Support\ServiceProvider;
 use Native\Mobile\Edge\TailwindParser;
+use Nativephp\NativeUi\Console\GenerateIconsCommand;
 
 class NativeUIServiceProvider extends ServiceProvider
 {
@@ -43,5 +44,11 @@ class NativeUIServiceProvider extends ServiceProvider
 
             return is_string($value) ? $value : null;
         });
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                GenerateIconsCommand::class,
+            ]);
+        }
     }
 }

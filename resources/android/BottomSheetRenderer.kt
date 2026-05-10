@@ -2,6 +2,7 @@ package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -20,9 +21,14 @@ import com.nativephp.plugins.native_ui.NativeUITheme
  * tap-outside both route to the `@dismiss` callback.
  *
  * Theme-sourced container + scrim (Model 3). No per-instance `background_color`.
- * `skipPartiallyExpanded` flips automatically based on whether "medium" is
- * among the allowed detents — needed because M3's single-flag detent model
- * doesn't map 1:1 to iOS's PresentationDetent set.
+ *
+ * Detent parsing matches the iOS renderer's vocabulary — accepts any
+ * comma-separated mix of `small` / `medium` / `large` / `full` plus
+ * free-form fractions (`"0.33,0.66"`). M3's `ModalBottomSheet` only
+ * exposes two stops (partial + full), so fractions can't snap precisely
+ * the way iOS's `PresentationDetent.fraction(_:)` does — we degrade
+ * gracefully: any partial-intent token (named or fractional `< 1.0`)
+ * enables the partial-expanded state; otherwise we skip straight to full.
  */
 object BottomSheetRenderer {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +44,7 @@ object BottomSheetRenderer {
 
         val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
 
-        val skipPartial = !detentsStr.contains("medium")
+        val skipPartial = !hasPartialDetent(detentsStr)
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = skipPartial)
 
         val sheetModifier = modifier
@@ -55,9 +61,51 @@ object BottomSheetRenderer {
             contentColor = theme.onSurface,
             scrimColor = BottomSheetDefaults.ScrimColor,
         ) {
-            Column(modifier = sheetModifier) {
+            // M3 ModalBottomSheet sizes itself to content by default — for
+            // multi-detent sheets that means short content collapses the
+            // partial/expanded anchors to the same height and you can't drag
+            // between them. iOS's `presentationDetents` drives container
+            // height instead, so the sheet always has the detent's worth of
+            // room and content sits inside. `fillMaxHeight()` reproduces
+            // that semantic on Android: content area always fills the
+            // current detent's height, leaving drag-room to the next one.
+            Column(modifier = sheetModifier.fillMaxHeight()) {
                 node.children.forEach { RenderNode(it) }
             }
         }
     }
+}
+
+/**
+ * Returns true iff the detents string requests at least one partial stop.
+ *
+ * Tokenization mirrors the iOS renderer: comma-separated, case-insensitive,
+ * trimmed. Recognized names: `small`, `medium`, `large`, `full`. Anything
+ * else is parsed as a `Double`; values in `(0, 1)` count as partial,
+ * values `>= 1` count as full. Unrecognized tokens are skipped.
+ *
+ * If no token can be interpreted, defaults to `true` (the PHP default
+ * `medium,large` always has a partial stop, so the empty/garbled fallback
+ * matches that intent).
+ */
+private fun hasPartialDetent(str: String): Boolean {
+    val parts = str.split(",")
+        .map { it.trim().lowercase() }
+        .filter { it.isNotEmpty() }
+    if (parts.isEmpty()) return true
+    var sawAny = false
+    for (part in parts) {
+        when (part) {
+            "small", "medium" -> return true
+            "large", "full" -> { sawAny = true }
+            else -> {
+                val f = part.toDoubleOrNull()
+                if (f != null && f > 0.0) {
+                    if (f < 1.0) return true
+                    sawAny = true
+                }
+            }
+        }
+    }
+    return !sawAny
 }

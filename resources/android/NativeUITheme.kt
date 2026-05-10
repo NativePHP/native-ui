@@ -1,5 +1,8 @@
 package com.nativephp.plugins.native_ui
 
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -166,6 +169,49 @@ object NativeUITheme {
  * dependencies and recompose when tokens change.
  */
 val LocalNativeUITheme = compositionLocalOf { NativeUITokens.fallback }
+
+/**
+ * Derive a Material 3 [ColorScheme] from these plugin tokens.
+ *
+ * Native chrome on Android (TopAppBar, Scaffold, BottomNav, SideDrawer,
+ * any vanilla M3 control) reads from `MaterialTheme.colorScheme.*`, while
+ * per-component plugin renderers read from [LocalNativeUITheme]. Without
+ * a bridge between the two, chrome stays on M3's baseline (lavender /
+ * deep-purple) even after PHP pushes a custom theme via `Theme::merge`.
+ *
+ * Mapping notes:
+ *   - `accent` → M3's `tertiary` slot (closest semantic match).
+ *   - `destructive` → M3's `error` slot.
+ *   - Container/inverse/scrim slots have no plugin equivalent; we leave
+ *     them at M3's baseline (via `[lightColorScheme] / [darkColorScheme]`)
+ *     so newly-introduced M3 widgets that depend on them keep working.
+ *   - `surfaceTint = primary` so elevation tinting follows the brand.
+ *
+ * Call from a `@Composable` context that already knows the active mode
+ * (system or PHP-overridden). The token instance itself doesn't carry a
+ * light/dark flag — it's just one coherent palette.
+ */
+fun NativeUITokens.toMaterialColorScheme(isDark: Boolean = false): ColorScheme {
+    val base = if (isDark) darkColorScheme() else lightColorScheme()
+    return base.copy(
+        primary          = primary,
+        onPrimary        = onPrimary,
+        secondary        = secondary,
+        onSecondary      = onSecondary,
+        tertiary         = accent,
+        onTertiary       = onAccent,
+        background       = background,
+        onBackground     = onBackground,
+        surface          = surface,
+        onSurface        = onSurface,
+        surfaceVariant   = surfaceVariant,
+        onSurfaceVariant = onSurfaceVariant,
+        outline          = outline,
+        error            = destructive,
+        onError          = onDestructive,
+        surfaceTint      = primary,
+    )
+}
 
 // ─── Parsing helpers ─────────────────────────────────────────────────────────
 
