@@ -1,5 +1,29 @@
 import SwiftUI
 
+/// One status badge in a list-item's trailing stack.
+private struct ListItemBadgeSpec: Decodable, Identifiable {
+    let icon: String
+    let icon_variant: String
+    let color: String
+
+    var id: String { icon + ":" + color }
+}
+
+private func decodeListItemBadges(_ json: String) -> [ListItemBadgeSpec] {
+    guard !json.isEmpty, let data = json.data(using: .utf8) else { return [] }
+    return (try? JSONDecoder().decode([ListItemBadgeSpec].self, from: data)) ?? []
+}
+
+/// Parse `#RRGGBB` to a SwiftUI Color. Returns nil for empty / invalid.
+private func parseListItemHex(_ hex: String) -> Color? {
+    let s = hex.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "#", with: "")
+    guard s.count == 6, let v = UInt32(s, radix: 16) else { return nil }
+    let r = Double((v >> 16) & 0xFF) / 255.0
+    let g = Double((v >> 8) & 0xFF) / 255.0
+    let b = Double(v & 0xFF) / 255.0
+    return Color(.sRGB, red: r, green: g, blue: b, opacity: 1)
+}
+
 struct NativeUIListItemRenderer: View {
     let node: NativeUINode
 
@@ -56,13 +80,18 @@ struct NativeUIListItemRenderer: View {
 
             Spacer()
 
-            // Trailing content
-            buildTrailingContent(
-                type: trailingType.isEmpty ? (trailingIcon.isEmpty ? "" : "icon") : trailingType,
-                value: trailingValue.isEmpty ? trailingIcon : trailingValue,
-                iconColor: trailingIconColor,
-                textColor: trailingTextColor
-            )
+            // Trailing — multi-badge stack wins over single trailingIcon.
+            let badgesJson = p.getString("trailing_badges_json", default: "")
+            if !badgesJson.isEmpty {
+                buildTrailingBadges(json: badgesJson)
+            } else {
+                buildTrailingContent(
+                    type: trailingType.isEmpty ? (trailingIcon.isEmpty ? "" : "icon") : trailingType,
+                    value: trailingValue.isEmpty ? trailingIcon : trailingValue,
+                    iconColor: trailingIconColor,
+                    textColor: trailingTextColor
+                )
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -110,6 +139,25 @@ struct NativeUIListItemRenderer: View {
             Image(systemName: "circle")
                 .foregroundColor(.secondary)
         default:
+            EmptyView()
+        }
+    }
+
+    /// Decode + render a horizontal stack of small status badges (e.g.
+    /// a flag + a pin both visible). Wins over the single
+    /// `trailing_icon` slot when present.
+    @ViewBuilder
+    private func buildTrailingBadges(json: String) -> some View {
+        let badges = decodeListItemBadges(json)
+        if !badges.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(badges) { b in
+                    Image(systemName: getIconForName(b.icon))
+                        .font(.system(size: 15))
+                        .foregroundColor(parseListItemHex(b.color) ?? .secondary)
+                }
+            }
+        } else {
             EmptyView()
         }
     }

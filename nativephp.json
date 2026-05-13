@@ -57,6 +57,30 @@
             "self_closing": false
         },
         {
+            "type": "lazy_grid",
+            "element": "Native\\Mobile\\Edge\\Elements\\LazyGrid",
+            "blade": "Native\\Mobile\\Edge\\Components\\LazyGrid",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.LazyGridRenderer",
+            "ios_renderer": "NativeUILazyGridRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "gesture_area",
+            "element": "Native\\Mobile\\Edge\\Elements\\GestureArea",
+            "blade": "Native\\Mobile\\Edge\\Components\\GestureArea",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.GestureAreaRenderer",
+            "ios_renderer": "NativeUIGestureAreaRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "refreshable",
+            "element": "Native\\Mobile\\Edge\\Elements\\Refreshable",
+            "blade": "Native\\Mobile\\Edge\\Components\\Refreshable",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.RefreshableRenderer",
+            "ios_renderer": "NativeUIRefreshableRenderer",
+            "self_closing": false
+        },
+        {
             "type": "pressable",
             "element": "Native\\Mobile\\Edge\\Elements\\Pressable",
             "blade": "Native\\Mobile\\Edge\\Components\\Pressable",
@@ -226,7 +250,7 @@
         },
         {
             "type": "icon",
-            "element": "Nativephp\\NativeUi\\Elements\\Icon",
+            "element": "Native\\Mobile\\Edge\\Elements\\Icon",
             "blade": "Nativephp\\NativeUi\\Components\\Icon",
             "android_renderer": "com.nativephp.plugins.native_ui.ui.IconRenderer",
             "ios_renderer": "NativeUIIconRenderer",

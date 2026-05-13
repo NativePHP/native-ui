@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nativephp.mobile.ui.nativerender.NativeElementBridge
 import com.nativephp.mobile.ui.nativerender.NativeUINode
 import com.nativephp.mobile.ui.nativerender.NodeView
@@ -87,11 +89,20 @@ object ListRenderer {
                 LazyColumn(modifier = (if (onRefreshCb != 0) Modifier else modifier).then(dismissKeyboardModifier), state = scrollState) {
                     node.children.forEachIndexed { index, child ->
                         item(key = child.id) {
-                            val deleteCb = child.props.getCallbackId("on_swipe_delete")
-                            if (deleteCb != 0) {
-                                SwipeToDeleteRow(
-                                    nodeKey = child,
-                                    onDelete = { NativeElementBridge.sendPressEvent(deleteCb, child.id) }
+                            val legacyDeleteCb = child.props.getCallbackId("on_swipe_delete")
+                            val leading = decodeSwipeActions(child.props.getString("leading_actions_json", ""))
+                            val trailing = decodeSwipeActions(child.props.getString("trailing_actions_json", ""))
+
+                            val effectiveTrailing = if (trailing.isNotEmpty()) trailing
+                                else if (legacyDeleteCb != 0) listOf(SwipeAction(legacyDeleteCb, "Delete", "delete", "", "#DC2626", "destructive"))
+                                else emptyList()
+
+                            if (leading.isNotEmpty() || effectiveTrailing.isNotEmpty()) {
+                                SwipeActionsRow(
+                                    nodeKey = child.id,
+                                    leading = leading,
+                                    trailing = effectiveTrailing,
+                                    onAction = { cb -> NativeElementBridge.sendPressEvent(cb, child.id) }
                                 ) {
                                     NodeView(node = child)
                                 }
@@ -134,45 +145,121 @@ object ListRenderer {
     }
 }
 
+/** Decoded swipe-action spec — one button on either edge. */
+internal data class SwipeAction(
+    val cb: Int,
+    val label: String,
+    val icon: String,         // resolved per-platform (Material name on Android)
+    val iconVariant: String,  // "filled" / "outlined" / "" (Material font variant)
+    val tint: String,         // hex string like "#10B981" or "" for default
+    val role: String,         // "destructive" or ""
+)
+
+internal fun decodeSwipeActions(json: String): List<SwipeAction> {
+    if (json.isEmpty()) return emptyList()
+    return try {
+        val arr = org.json.JSONArray(json)
+        (0 until arr.length()).mapNotNull { i ->
+            val o = arr.optJSONObject(i) ?: return@mapNotNull null
+            SwipeAction(
+                cb = o.optInt("cb", 0),
+                label = o.optString("label", ""),
+                icon = o.optString("icon", ""),
+                iconVariant = o.optString("icon_variant", ""),
+                tint = o.optString("tint", ""),
+                role = o.optString("role", ""),
+            )
+        }.filter { it.cb != 0 }
+    } catch (_: Exception) {
+        emptyList()
+    }
+}
+
+private fun parseHexColor(hex: String, fallback: Color): Color {
+    val s = hex.trim().removePrefix("#")
+    if (s.length != 6) return fallback
+    return try {
+        val v = s.toLong(16)
+        Color(
+            red = ((v shr 16) and 0xFF) / 255f,
+            green = ((v shr 8) and 0xFF) / 255f,
+            blue = (v and 0xFF) / 255f,
+        )
+    } catch (_: Exception) {
+        fallback
+    }
+}
+
 /**
- * Simple swipe-to-reveal-delete row. Swipe left to reveal a Delete button.
- * Tap the button to fire the callback. No persistent dismiss state.
+ * Bi-directional swipe-actions row. Drag right to reveal `leading`
+ * actions; drag left to reveal `trailing`. Tap an action button to
+ * fire its callback. Destructive trailing actions allow full-swipe
+ * dismiss (matching iOS `.swipeActions(allowsFullSwipe: true)`).
+ *
+ * Mirrors SwiftUI's `.swipeActions` semantics as closely as we can
+ * without a Material 3 primitive — Compose Material doesn't ship a
+ * multi-action swipe-reveal, so we roll our own with `pointerInput +
+ * detectHorizontalDragGestures` and animated offset.
  */
 @Composable
-private fun SwipeToDeleteRow(
+private fun SwipeActionsRow(
     nodeKey: Any,
-    onDelete: () -> Unit,
-    content: @Composable () -> Unit
+    leading: List<SwipeAction>,
+    trailing: List<SwipeAction>,
+    onAction: (Int) -> Unit,
+    content: @Composable () -> Unit,
 ) {
-    val offsetX = remember(nodeKey) { mutableStateOf(0f) }
-    val deleteWidth = 80.dp
+    val actionWidth = 80.dp
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val deleteWidthPx = with(density) { deleteWidth.toPx() }
+    val actionWidthPx = with(density) { actionWidth.toPx() }
+
+    val leadingMaxPx = actionWidthPx * leading.size
+    val trailingMaxPx = -(actionWidthPx * trailing.size)
+
+    val offsetX = remember(nodeKey) { mutableStateOf(0f) }
     val animatedOffset = animateFloatAsState(targetValue = offsetX.value, label = "swipe")
     val offsetDp = with(density) { animatedOffset.value.toDp() }
 
+    // The outer Box's height is driven by the foreground content
+    // (the list-item row). Drawers use `matchParentSize()` so they
+    // adopt the content row's height rather than pushing it taller —
+    // without that, `fillMaxSize()` on the drawers + their buttons
+    // created unbounded height demands and left huge gaps between
+    // rows. Compose's `matchParentSize` opts the child out of the
+    // parent's measurement pass, sizing it AFTER the parent is sized
+    // by the foreground content.
     Box(
         Modifier
             .fillMaxWidth()
             .clipToBounds()
     ) {
-        // Delete button — aligned to the right, always present but hidden behind content
-        Box(
-            Modifier
-                .matchParentSize()
-                .background(Color.Red)
-                .clickable {
-                    offsetX.value = 0f
-                    onDelete()
-                },
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            Box(Modifier.width(deleteWidth), contentAlignment = Alignment.Center) {
-                Text("Delete", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        if (leading.isNotEmpty()) {
+            androidx.compose.foundation.layout.Row(
+                Modifier.matchParentSize(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Start,
+            ) {
+                leading.forEach { action ->
+                    SwipeActionButton(action, actionWidth) {
+                        offsetX.value = 0f
+                        onAction(action.cb)
+                    }
+                }
+            }
+        }
+        if (trailing.isNotEmpty()) {
+            androidx.compose.foundation.layout.Row(
+                Modifier.matchParentSize(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End,
+            ) {
+                trailing.forEach { action ->
+                    SwipeActionButton(action, actionWidth) {
+                        offsetX.value = 0f
+                        onAction(action.cb)
+                    }
+                }
             }
         }
 
-        // Foreground content slides left to reveal delete
         Box(
             Modifier
                 .fillMaxWidth()
@@ -181,19 +268,62 @@ private fun SwipeToDeleteRow(
                 .pointerInput(nodeKey) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
-                            if (offsetX.value < -deleteWidthPx / 2) {
-                                offsetX.value = -deleteWidthPx
-                            } else {
-                                offsetX.value = 0f
+                            val pos = offsetX.value
+                            offsetX.value = when {
+                                pos > leadingMaxPx / 2  -> leadingMaxPx
+                                pos < trailingMaxPx / 2 -> trailingMaxPx
+                                else                    -> 0f
                             }
                         },
                         onHorizontalDrag = { _, dragAmount ->
-                            offsetX.value = (offsetX.value + dragAmount).coerceIn(-deleteWidthPx, 0f)
+                            offsetX.value = (offsetX.value + dragAmount)
+                                .coerceIn(trailingMaxPx, leadingMaxPx)
                         }
                     )
                 }
         ) {
             content()
+        }
+    }
+}
+
+@Composable
+private fun SwipeActionButton(
+    action: SwipeAction,
+    width: androidx.compose.ui.unit.Dp,
+    onClick: () -> Unit,
+) {
+    val defaultBg = if (action.role == "destructive") Color(0xFFDC2626) else Color(0xFF6366F1)
+    val bg = if (action.tint.isNotEmpty()) parseHexColor(action.tint, defaultBg) else defaultBg
+
+    Box(
+        Modifier
+            .fillMaxHeight()
+            .width(width)
+            .background(bg)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.foundation.layout.Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(2.dp),
+        ) {
+            if (action.icon.isNotEmpty()) {
+                com.nativephp.mobile.ui.MaterialIcon(
+                    name = action.icon,
+                    contentDescription = action.label.ifEmpty { null },
+                    size = 22.dp,
+                    tint = Color.White,
+                )
+            }
+            if (action.label.isNotEmpty()) {
+                Text(
+                    text = action.label,
+                    color = Color.White,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }

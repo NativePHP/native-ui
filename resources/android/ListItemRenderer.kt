@@ -145,20 +145,29 @@ object ListItemRenderer {
                 nodeId = node.id,
                 disabled = disabled
             ),
-            trailingContent = buildTrailingContent(
-                type = trailingType,
-                value = trailingValue,
-                fallbackIcon = trailingIcon,
-                checkedInitial = trailingCheckedInitial,
-                iconColor = trailingIconColor,
-                textColor = trailingTextColor,
-                onChangeCb = onTrailingChangeCb,
-                onPressCb = onTrailingPressCb,
-                nodeId = node.id,
-                disabled = disabled,
-                hasMenu = p.getBool("has_trailing_menu"),
-                menuItems = node.children.filter { it.type == "top_bar_action" },
-            ),
+            trailingContent = run {
+                // Multi-badge stack (e.g. flag + pin both visible)
+                // wins over the single trailing-icon slot.
+                val badgesJson = p.getString("trailing_badges_json", "")
+                if (badgesJson.isNotEmpty()) {
+                    buildTrailingBadges(badgesJson)
+                } else {
+                    buildTrailingContent(
+                        type = trailingType,
+                        value = trailingValue,
+                        fallbackIcon = trailingIcon,
+                        checkedInitial = trailingCheckedInitial,
+                        iconColor = trailingIconColor,
+                        textColor = trailingTextColor,
+                        onChangeCb = onTrailingChangeCb,
+                        onPressCb = onTrailingPressCb,
+                        nodeId = node.id,
+                        disabled = disabled,
+                        hasMenu = p.getBool("has_trailing_menu"),
+                        menuItems = node.children.filter { it.type == "top_bar_action" },
+                    )
+                }
+            },
             colors = colors,
             tonalElevation = tonalElevation.dp,
             shadowElevation = shadowElevation.dp
@@ -291,6 +300,42 @@ object ListItemRenderer {
         }
     }
 
+    /**
+     * Build a composable that renders a horizontal stack of small
+     * status badges (e.g. flag + pin both visible). Each badge is a
+     * Material icon at 18.dp with its own tint color. Returns null
+     * when the JSON is empty/invalid so the caller falls back to
+     * the single-icon `buildTrailingContent`.
+     */
+    private fun buildTrailingBadges(json: String): (@Composable () -> Unit)? {
+        if (json.isEmpty()) return null
+        val arr = try { org.json.JSONArray(json) } catch (_: Exception) { return null }
+        val badges = (0 until arr.length()).mapNotNull { i ->
+            val o = arr.optJSONObject(i) ?: return@mapNotNull null
+            val icon = o.optString("icon", "")
+            if (icon.isEmpty()) return@mapNotNull null
+            Triple(icon, o.optString("icon_variant", ""), o.optString("color", ""))
+        }
+        if (badges.isEmpty()) return null
+
+        return {
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                badges.forEach { (icon, _, color) ->
+                    val tint = parseListItemBadgeHex(color) ?: Color.Unspecified
+                    com.nativephp.mobile.ui.MaterialIcon(
+                        name = icon,
+                        contentDescription = null,
+                        size = 18.dp,
+                        tint = tint,
+                    )
+                }
+            }
+        }
+    }
+
     @Composable
     private fun buildTrailingContent(
         type: String,
@@ -400,5 +445,21 @@ object ListItemRenderer {
                 }
             }
         }
+    }
+}
+
+/** Parse `#RRGGBB` to a Compose Color. Returns null when invalid. */
+private fun parseListItemBadgeHex(hex: String): Color? {
+    val s = hex.trim().removePrefix("#")
+    if (s.length != 6) return null
+    return try {
+        val v = s.toLong(16)
+        Color(
+            red = ((v shr 16) and 0xFF) / 255f,
+            green = ((v shr 8) and 0xFF) / 255f,
+            blue = (v and 0xFF) / 255f,
+        )
+    } catch (_: Exception) {
+        null
     }
 }

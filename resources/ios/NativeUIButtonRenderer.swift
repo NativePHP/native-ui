@@ -100,6 +100,11 @@ struct NativeUIButtonRenderer: View {
             iconSize: metrics.iconSize,
             textSize: textSize
         )
+        // `.fillWidthIfRequested(node)` is applied INSIDE the Button's
+        // label closure at each variant call site below. SwiftUI's
+        // Button sizes to its label's intrinsic width, so we have to
+        // expand the LABEL (not the outer Button frame) to honor
+        // `w-full`. See `NativeUIFillWidthHelper.swift`.
 
         // Glass takes precedence over variant. iOS 26+ uses real `.glass` /
         // `.glassProminent`; older iOS falls back to bordered styles tinted
@@ -160,7 +165,7 @@ struct NativeUIButtonRenderer: View {
                 // No `.buttonStyle(.glassClear)` exists — drop to plain and
                 // apply `.glassEffect(.clear)` directly. Variant tint flows
                 // through as the label's foreground color.
-                Button(action: action) { content.foregroundStyle(tint) }
+                Button(action: action) { content.foregroundStyle(tint).fillWidthIfRequested(node) }
                     .buttonStyle(.plain)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
@@ -170,7 +175,7 @@ struct NativeUIButtonRenderer: View {
                     .modifier(A11yLabelModifier(label: a11yLabel))
                     .modifier(A11yHintModifier(hint: a11yHint))
             } else if prominent {
-                Button(action: action) { content }
+                Button(action: action) { content.fillWidthIfRequested(node) }
                     .buttonStyle(.glassProminent)
                     .tint(tint)
                     .foregroundStyle(onTint)
@@ -179,7 +184,7 @@ struct NativeUIButtonRenderer: View {
                     .modifier(A11yLabelModifier(label: a11yLabel))
                     .modifier(A11yHintModifier(hint: a11yHint))
             } else {
-                Button(action: action) { content }
+                Button(action: action) { content.fillWidthIfRequested(node) }
                     .buttonStyle(.glass)
                     .tint(tint)
                     .controlSize(metrics.controlSize)
@@ -193,7 +198,7 @@ struct NativeUIButtonRenderer: View {
             // still applies so `glass:prominent` + `variant="destructive"`
             // reads as a destructive button on older iOS too.
             if prominent {
-                Button(action: action) { content }
+                Button(action: action) { content.fillWidthIfRequested(node) }
                     .buttonStyle(.borderedProminent)
                     .tint(tint)
                     .foregroundStyle(onTint)
@@ -202,7 +207,7 @@ struct NativeUIButtonRenderer: View {
                     .modifier(A11yLabelModifier(label: a11yLabel))
                     .modifier(A11yHintModifier(hint: a11yHint))
             } else {
-                Button(action: action) { content }
+                Button(action: action) { content.fillWidthIfRequested(node) }
                     .buttonStyle(.bordered)
                     .tint(tint)
                     .controlSize(metrics.controlSize)
@@ -228,7 +233,7 @@ struct NativeUIButtonRenderer: View {
     ) -> some View {
         switch variant {
         case "secondary":
-            Button(action: action) { content }
+            Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.bordered)
                 .tint(theme.secondary)
                 .foregroundStyle(theme.onSecondary)
@@ -241,7 +246,7 @@ struct NativeUIButtonRenderer: View {
             // Note: not using `role: .destructive` — it fights `.tint()` on
             // `.borderedProminent` and can render as the system destructive
             // color rather than the theme's destructive token.
-            Button(action: action) { content }
+            Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.borderedProminent)
                 .tint(theme.destructive)
                 .foregroundStyle(theme.onDestructive)
@@ -251,7 +256,7 @@ struct NativeUIButtonRenderer: View {
                 .modifier(A11yHintModifier(hint: a11yHint))
 
         case "ghost":
-            Button(action: action) { content }
+            Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.plain)
                 .foregroundStyle(theme.primary)
                 .controlSize(metrics.controlSize)
@@ -260,7 +265,7 @@ struct NativeUIButtonRenderer: View {
                 .modifier(A11yHintModifier(hint: a11yHint))
 
         case "accent":
-            Button(action: action) { content }
+            Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.borderedProminent)
                 .tint(theme.accent)
                 .foregroundStyle(theme.onAccent)
@@ -270,7 +275,7 @@ struct NativeUIButtonRenderer: View {
                 .modifier(A11yHintModifier(hint: a11yHint))
 
         default: // "primary" and any unknown value
-            Button(action: action) { content }
+            Button(action: action) { content.fillWidthIfRequested(node) }
                 .buttonStyle(.borderedProminent)
                 .tint(theme.primary)
                 .foregroundStyle(theme.onPrimary)

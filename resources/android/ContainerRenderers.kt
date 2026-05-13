@@ -9,6 +9,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -136,6 +141,47 @@ object CanvasRenderer {
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
         DefaultContainerNode(node, modifier.clipToBounds())
+    }
+}
+
+/**
+ * Self-scrolling grid backed by Compose `LazyVerticalGrid` /
+ * `LazyHorizontalGrid`. Only the rows currently in (or about to enter)
+ * the viewport are composed, so this scales to thousands of cells
+ * without paying for them at first paint. Use in place of a manually
+ * chunked row-of-row grid whenever the cell count is large enough to
+ * matter.
+ */
+object LazyGridRenderer {
+    @Composable
+    fun Render(node: NativeUINode, modifier: Modifier) {
+        val columns = node.props.getInt("columns", default = 2).coerceAtLeast(1)
+        val gap = node.props.getFloat("gap", default = 0f).dp
+        val horizontal = node.props.getBool("horizontal")
+
+        if (horizontal) {
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(columns),
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                verticalArrangement = Arrangement.spacedBy(gap),
+                modifier = modifier,
+            ) {
+                items(node.children, key = { it.id }) { child ->
+                    NodeView(node = child)
+                }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                verticalArrangement = Arrangement.spacedBy(gap),
+                modifier = modifier,
+            ) {
+                items(node.children, key = { it.id }) { child ->
+                    NodeView(node = child)
+                }
+            }
+        }
     }
 }
 

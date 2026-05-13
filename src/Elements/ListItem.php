@@ -23,6 +23,21 @@ class ListItem extends Element
 
     protected ?string $swipeDeleteCallback = null;
 
+    /** @var array<int, array{method:string,label:string,icon?:string,tint?:string,role?:string}> */
+    protected array $leadingActions = [];
+
+    /** @var array<int, array{method:string,label:string,icon?:string,tint?:string,role?:string}> */
+    protected array $trailingActions = [];
+
+    /**
+     * Small status badges drawn in the trailing area (right-aligned).
+     * Stacked horizontally. Each badge: an icon (string / SF enum /
+     * Material enum) plus an optional color hex.
+     *
+     * @var array<int, array{icon?:string,sf?:mixed,material?:mixed,color?:string}>
+     */
+    protected array $trailingBadges = [];
+
     public static function make(string $headline = ''): static
     {
         $el = new static;
@@ -46,8 +61,16 @@ class ListItem extends Element
         }
 
         // Leading content — type-based attributes
-        if (isset($attrs['leadingIcon'])) {
-            $this->leadingIcon($attrs['leadingIcon']);
+        // Leading icon accepts an optional cross-platform string plus
+        // typed SF / Material overrides — same shape as HasPlatformIcon
+        // builders. The trio is collapsed via IconResolver inside
+        // `leadingIcon()`.
+        if (isset($attrs['leadingIcon']) || isset($attrs['leadingIconSf']) || isset($attrs['leadingIconMaterial'])) {
+            $this->leadingIcon(
+                $attrs['leadingIcon'] ?? null,
+                $attrs['leadingIconSf'] ?? null,
+                $attrs['leadingIconMaterial'] ?? null,
+            );
         }
         if (isset($attrs['leadingAvatar'])) {
             $this->leadingAvatar($attrs['leadingAvatar']);
@@ -66,8 +89,13 @@ class ListItem extends Element
         }
 
         // Trailing content — type-based attributes
-        if (isset($attrs['trailingIcon'])) {
-            $this->trailingIcon($attrs['trailingIcon']);
+        // Trailing icon — same typed-icon API as leadingIcon.
+        if (isset($attrs['trailingIcon']) || isset($attrs['trailingIconSf']) || isset($attrs['trailingIconMaterial'])) {
+            $this->trailingIcon(
+                $attrs['trailingIcon'] ?? null,
+                $attrs['trailingIconSf'] ?? null,
+                $attrs['trailingIconMaterial'] ?? null,
+            );
         }
         if (isset($attrs['trailingText'])) {
             $this->trailingText($attrs['trailingText']);
@@ -148,15 +176,77 @@ class ListItem extends Element
             $this->disabled((bool) $attrs['disabled']);
         }
 
-        // Swipe actions
+        // Swipe actions — legacy single-action API
         if (isset($attrs['on-swipe-delete']) || isset($attrs['onSwipeDelete'])) {
             $this->onSwipeDelete($attrs['on-swipe-delete'] ?? $attrs['onSwipeDelete']);
         }
+
+        // Swipe actions — new structured multi-action API. Each entry
+        // is `['method' => …, 'label' => …, 'icon' => …, 'tint' => …,
+        // 'role' => …]`. Both arrays support 1+ actions.
+        if (isset($attrs['leading-actions']) && is_array($attrs['leading-actions'])) {
+            $this->leadingActions($attrs['leading-actions']);
+        }
+        if (isset($attrs['trailing-actions']) && is_array($attrs['trailing-actions'])) {
+            $this->trailingActions($attrs['trailing-actions']);
+        }
+
+        // Stacked status badges (e.g. flag + pin both visible at once).
+        if (isset($attrs['trailing-badges']) && is_array($attrs['trailing-badges'])) {
+            $this->trailingBadges($attrs['trailing-badges']);
+        }
+    }
+
+    /**
+     * Set the list of small badges drawn in the trailing area. Each
+     * entry: `['icon' => 'flag', 'sf' => SF::FlagFill, 'material' =>
+     * Material::Flag, 'color' => '#EF4444']`. Icons resolve via
+     * `IconResolver`. When set, replaces the single `trailingIcon`
+     * slot — the renderer draws all badges in a small HStack.
+     *
+     * @param  array<int, array<string, mixed>>  $badges
+     */
+    public function trailingBadges(array $badges): static
+    {
+        $this->trailingBadges = array_values($badges);
+
+        return $this;
     }
 
     public function onSwipeDelete(string $method): static
     {
         $this->swipeDeleteCallback = $method;
+
+        return $this;
+    }
+
+    /**
+     * Actions revealed on a leading-edge (left→right) swipe.
+     *
+     * Each entry: `['method' => 'archive', 'label' => 'Archive',
+     * 'icon' => 'archivebox', 'tint' => '#10B981', 'role' => '']`.
+     * iOS renders via `.swipeActions(edge: .leading)`; Android via a
+     * custom swipe-to-reveal composable mirroring the same behavior.
+     *
+     * @param  array<int, array<string, string>>  $actions
+     */
+    public function leadingActions(array $actions): static
+    {
+        $this->leadingActions = array_values($actions);
+
+        return $this;
+    }
+
+    /**
+     * Actions revealed on a trailing-edge (right→left) swipe.
+     * Same shape as `leadingActions`. Setting `role => 'destructive'`
+     * on an action gives it the red destructive treatment.
+     *
+     * @param  array<int, array<string, string>>  $actions
+     */
+    public function trailingActions(array $actions): static
+    {
+        $this->trailingActions = array_values($actions);
 
         return $this;
     }
@@ -415,6 +505,91 @@ class ListItem extends Element
             $props['on_swipe_delete'] = $registry->register($this->swipeDeleteCallback);
         }
 
+        // Multi-action swipe arrays — register each method, then emit
+        // a JSON-encoded string per edge for the native renderer to
+        // parse. Format: `[{"cb":42,"label":"Archive","icon":"archivebox","tint":"#10B981","role":""}, …]`
+        if (! empty($this->leadingActions)) {
+            $props['leading_actions_json'] = $this->serializeActions($this->leadingActions, $registry);
+        }
+        if (! empty($this->trailingActions)) {
+            $props['trailing_actions_json'] = $this->serializeActions($this->trailingActions, $registry);
+        }
+
+        if (! empty($this->trailingBadges)) {
+            $props['trailing_badges_json'] = $this->serializeBadges($this->trailingBadges);
+        }
+
         return $props;
+    }
+
+    /**
+     * Serialize trailing-badge specs. Resolves the typed icon via
+     * IconResolver so the native side gets the platform-correct name
+     * (and Material variant when applicable).
+     *
+     * @param  array<int, array<string, mixed>>  $badges
+     */
+    private function serializeBadges(array $badges): string
+    {
+        $out = [];
+        foreach ($badges as $badge) {
+            $resolved = IconResolver::resolve(
+                $badge['icon'] ?? null,
+                $badge['sf'] ?? null,
+                $badge['material'] ?? null,
+            );
+            if (empty($resolved['icon'])) {
+                continue;
+            }
+            $out[] = [
+                'icon'         => $resolved['icon'],
+                'icon_variant' => $resolved['variant'] ?? '',
+                'color'        => $badge['color'] ?? '',
+            ];
+        }
+
+        return json_encode($out);
+    }
+
+    /**
+     * Serialize a swipe-action list to a JSON string for the wire.
+     *
+     * Each input action may carry a cross-platform `icon` string AND/OR
+     * a typed `sf` (SFSymbol enum) / `material` (MaterialSymbol enum)
+     * override. `IconResolver::resolve` chooses the right one for the
+     * current platform — same logic as `HasPlatformIcon` builders so
+     * the icon API is consistent across the framework.
+     *
+     * On Android, when the material override is a `MaterialSymbol`
+     * enum case, the chosen variant (filled vs outlined) flows
+     * through as `icon_variant` so the renderer picks the right font.
+     *
+     * @param  array<int, array<string, mixed>>  $actions
+     */
+    private function serializeActions(array $actions, CallbackRegistry $registry): string
+    {
+        $out = [];
+        foreach ($actions as $action) {
+            if (empty($action['method'])) {
+                continue;
+            }
+
+            $resolved = IconResolver::resolve(
+                $action['icon'] ?? null,
+                $action['sf'] ?? null,
+                $action['material'] ?? null,
+            );
+
+            $out[] = [
+                'cb'           => $registry->register($action['method']),
+                'label'        => $action['label'] ?? '',
+                'icon'         => $resolved['icon'] ?? '',
+                'icon_variant' => $resolved['variant'] ?? '',
+                'tint'         => $action['tint'] ?? '',
+                'role'         => $action['role'] ?? '',
+            ];
+        }
+
+        return json_encode($out);
     }
 }
