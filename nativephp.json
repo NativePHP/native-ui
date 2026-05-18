@@ -217,6 +217,14 @@
             "self_closing": false
         },
         {
+            "type": "virtual_list",
+            "element": "Nativephp\\NativeUi\\Elements\\NativeVirtualList",
+            "blade": "Nativephp\\NativeUi\\Components\\NativeVirtualList",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.VirtualListRenderer",
+            "ios_renderer": "NativeUIVirtualListRenderer",
+            "self_closing": true
+        },
+        {
             "type": "modal",
             "element": "Nativephp\\NativeUi\\Elements\\Modal",
             "blade": "Nativephp\\NativeUi\\Components\\Modal",
