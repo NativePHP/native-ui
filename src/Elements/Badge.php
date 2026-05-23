@@ -15,7 +15,8 @@ use Native\Mobile\Edge\Element;
  *   accent                — theme.accent / on-accent
  *
  * Use either `count` (renders an integer; "99+" for >99) or `label` (arbitrary
- * short text). If both set, `label` wins.
+ * short text). If both set, `label` wins. `link` / `url` makes the badge open
+ * the URL with the platform browser when pressed.
  */
 class Badge extends Element
 {
@@ -39,6 +40,9 @@ class Badge extends Element
         if (isset($attrs['count']))   { $this->count((int) $attrs['count']); }
         if (isset($attrs['label']))   { $this->label($attrs['label']); }
         if (isset($attrs['variant'])) { $this->variant((string) $attrs['variant']); }
+        if (isset($attrs['link']) || isset($attrs['url'])) {
+            $this->link((string) ($attrs['link'] ?? $attrs['url']));
+        }
 
         if (isset($attrs['a11y-label']) || isset($attrs['a11yLabel'])) {
             $this->a11yLabel($attrs['a11y-label'] ?? $attrs['a11yLabel']);
@@ -62,6 +66,13 @@ class Badge extends Element
     public function variant(string $variant): static
     {
         $this->badgeProps['variant'] = $variant;
+
+        return $this;
+    }
+
+    public function link(string $url): static
+    {
+        $this->badgeProps['link'] = $url;
 
         return $this;
     }

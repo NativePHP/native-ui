@@ -345,6 +345,22 @@
             "self_closing": true
         },
         {
+            "type": "timeline",
+            "element": "Nativephp\\NativeUi\\Elements\\Timeline",
+            "blade": "Nativephp\\NativeUi\\Components\\Timeline",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.TimelineRenderer",
+            "ios_renderer": "NativeUITimelineRenderer",
+            "self_closing": false
+        },
+        {
+            "type": "timeline_block",
+            "element": "Nativephp\\NativeUi\\Elements\\TimelineBlock",
+            "blade": "Nativephp\\NativeUi\\Components\\TimelineBlock",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.TimelineBlockRenderer",
+            "ios_renderer": "NativeUITimelineBlockRenderer",
+            "self_closing": false
+        },
+        {
             "type": "card",
             "element": "Nativephp\\NativeUi\\Elements\\Card",
             "blade": "Nativephp\\NativeUi\\Components\\Card",

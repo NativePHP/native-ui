@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// SwiftUI Badge — capsule pill with count or short label.
 ///
@@ -25,6 +26,7 @@ struct NativeUIBadgeRenderer: View {
         let label     = p.getString("label")
         let variant   = p.getString("variant", default: "destructive")
         let a11yLabel = p.getString("a11y_label")
+        let link      = p.getString("link")
 
         let glassFlags = p.getInt("glass", default: 0)
         let glassEnabled     = (glassFlags & 1) != 0
@@ -44,7 +46,7 @@ struct NativeUIBadgeRenderer: View {
             }
         }()
 
-        Text(text)
+        let badge = Text(text)
             .font(.system(size: 12, weight: .bold))
             .foregroundColor(fg)
             .padding(.horizontal, 6)
@@ -57,6 +59,25 @@ struct NativeUIBadgeRenderer: View {
                 hasUserBg: hasUserBg
             ))
             .modifier(A11yLabelModifier(label: a11yLabel))
+
+        if link.isEmpty {
+            badge
+        } else {
+            Button {
+                openBadgeLink(link)
+            } label: {
+                badge
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func openBadgeLink(_ link: String) {
+        guard let url = URL(string: link) else {
+            return
+        }
+
+        UIApplication.shared.open(url)
     }
 }
 

@@ -1,6 +1,9 @@
 package com.nativephp.plugins.native_ui.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
@@ -12,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +35,8 @@ object BadgeRenderer {
         val label   = p.getString("label")
         val variant = p.getString("variant", "destructive")
         val a11yLabel = p.getString("a11y_label")
+        val link = p.getString("link")
+        val context = LocalContext.current
 
         val theme = if (isSystemInDarkTheme()) NativeUITheme.dark else NativeUITheme.light
 
@@ -48,6 +54,18 @@ object BadgeRenderer {
             .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(bg)
+            .let { m ->
+                if (link.isNotEmpty()) {
+                    m.clickable {
+                        runCatching {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                            context.startActivity(intent)
+                        }
+                    }
+                } else {
+                    m
+                }
+            }
             .padding(horizontal = 6.dp, vertical = 2.dp)
             .let { m -> if (a11yLabel.isNotEmpty()) m.semantics { contentDescription = a11yLabel } else m }
 
