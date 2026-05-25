@@ -5,9 +5,9 @@ namespace Nativephp\NativeUi\Elements;
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavAction;
+use Native\Mobile\Icon\AndroidSymbol;
 use Native\Mobile\Icon\IconResolver;
-use Native\Mobile\Icon\MaterialSymbol;
-use Native\Mobile\Icon\SFSymbol;
+use Native\Mobile\Icon\IosSymbol;
 
 class ListItem extends Element
 {
@@ -31,10 +31,10 @@ class ListItem extends Element
 
     /**
      * Small status badges drawn in the trailing area (right-aligned).
-     * Stacked horizontally. Each badge: an icon (string / SF enum /
-     * Material enum) plus an optional color hex.
+     * Stacked horizontally. Each badge: an icon (string / Ios enum /
+     * Android enum) plus an optional color hex.
      *
-     * @var array<int, array{icon?:string,sf?:mixed,material?:mixed,color?:string}>
+     * @var array<int, array{icon?:string,ios?:mixed,android?:mixed,color?:string}>
      */
     protected array $trailingBadges = [];
 
@@ -62,14 +62,14 @@ class ListItem extends Element
 
         // Leading content — type-based attributes
         // Leading icon accepts an optional cross-platform string plus
-        // typed SF / Material overrides — same shape as HasPlatformIcon
+        // typed iOS / Android overrides — same shape as HasPlatformIcon
         // builders. The trio is collapsed via IconResolver inside
         // `leadingIcon()`.
-        if (isset($attrs['leadingIcon']) || isset($attrs['leadingIconSf']) || isset($attrs['leadingIconMaterial'])) {
+        if (isset($attrs['leadingIcon']) || isset($attrs['leadingIconIos']) || isset($attrs['leadingIconAndroid'])) {
             $this->leadingIcon(
                 $attrs['leadingIcon'] ?? null,
-                $attrs['leadingIconSf'] ?? null,
-                $attrs['leadingIconMaterial'] ?? null,
+                $attrs['leadingIconIos'] ?? null,
+                $attrs['leadingIconAndroid'] ?? null,
             );
         }
         if (isset($attrs['leadingAvatar'])) {
@@ -90,11 +90,11 @@ class ListItem extends Element
 
         // Trailing content — type-based attributes
         // Trailing icon — same typed-icon API as leadingIcon.
-        if (isset($attrs['trailingIcon']) || isset($attrs['trailingIconSf']) || isset($attrs['trailingIconMaterial'])) {
+        if (isset($attrs['trailingIcon']) || isset($attrs['trailingIconIos']) || isset($attrs['trailingIconAndroid'])) {
             $this->trailingIcon(
                 $attrs['trailingIcon'] ?? null,
-                $attrs['trailingIconSf'] ?? null,
-                $attrs['trailingIconMaterial'] ?? null,
+                $attrs['trailingIconIos'] ?? null,
+                $attrs['trailingIconAndroid'] ?? null,
             );
         }
         if (isset($attrs['trailingText'])) {
@@ -199,8 +199,8 @@ class ListItem extends Element
 
     /**
      * Set the list of small badges drawn in the trailing area. Each
-     * entry: `['icon' => 'flag', 'sf' => SF::FlagFill, 'material' =>
-     * Material::Flag, 'color' => '#EF4444']`. Icons resolve via
+     * entry: `['icon' => 'flag', 'ios' => Ios::FlagFill, 'android' =>
+     * Android::Flag, 'color' => '#EF4444']`. Icons resolve via
      * `IconResolver`. When set, replaces the single `trailingIcon`
      * slot — the renderer draws all badges in a small HStack.
      *
@@ -271,10 +271,10 @@ class ListItem extends Element
 
     public function leadingIcon(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        $r = IconResolver::resolve($name, $sf, $material);
+        $r = IconResolver::resolve($name, $ios, $android);
         if ($r['icon'] !== null) {
             $this->listItemProps['leading_type'] = 'icon';
             $this->listItemProps['leading_value'] = $r['icon'];
@@ -334,10 +334,10 @@ class ListItem extends Element
 
     public function trailingIcon(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        $r = IconResolver::resolve($name, $sf, $material);
+        $r = IconResolver::resolve($name, $ios, $android);
         if ($r['icon'] !== null) {
             $this->listItemProps['trailing_type'] = 'icon';
             $this->listItemProps['trailing_value'] = $r['icon'];
@@ -376,10 +376,10 @@ class ListItem extends Element
 
     public function trailingIconButton(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        $r = IconResolver::resolve($name, $sf, $material);
+        $r = IconResolver::resolve($name, $ios, $android);
         if ($r['icon'] !== null) {
             $this->listItemProps['trailing_type'] = 'icon_button';
             $this->listItemProps['trailing_value'] = $r['icon'];
@@ -535,8 +535,8 @@ class ListItem extends Element
         foreach ($badges as $badge) {
             $resolved = IconResolver::resolve(
                 $badge['icon'] ?? null,
-                $badge['sf'] ?? null,
-                $badge['material'] ?? null,
+                $badge['ios'] ?? null,
+                $badge['android'] ?? null,
             );
             if (empty($resolved['icon'])) {
                 continue;
@@ -555,12 +555,12 @@ class ListItem extends Element
      * Serialize a swipe-action list to a JSON string for the wire.
      *
      * Each input action may carry a cross-platform `icon` string AND/OR
-     * a typed `sf` (SFSymbol enum) / `material` (MaterialSymbol enum)
+     * a typed `ios` (IosSymbol enum) / `android` (AndroidSymbol enum)
      * override. `IconResolver::resolve` chooses the right one for the
      * current platform — same logic as `HasPlatformIcon` builders so
      * the icon API is consistent across the framework.
      *
-     * On Android, when the material override is a `MaterialSymbol`
+     * On Android, when the android override is an `AndroidSymbol`
      * enum case, the chosen variant (filled vs outlined) flows
      * through as `icon_variant` so the renderer picks the right font.
      *
@@ -576,8 +576,8 @@ class ListItem extends Element
 
             $resolved = IconResolver::resolve(
                 $action['icon'] ?? null,
-                $action['sf'] ?? null,
-                $action['material'] ?? null,
+                $action['ios'] ?? null,
+                $action['android'] ?? null,
             );
 
             $out[] = [

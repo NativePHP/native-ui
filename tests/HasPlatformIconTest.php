@@ -1,8 +1,8 @@
 <?php
 
 use Native\Mobile\Concerns\HasPlatformIcon;
-use Native\Mobile\Icon\MaterialSymbol;
-use Native\Mobile\Icon\SFSymbol;
+use Native\Mobile\Icon\AndroidSymbol;
+use Native\Mobile\Icon\IosSymbol;
 use Native\Mobile\Platform;
 
 /**
@@ -10,24 +10,24 @@ use Native\Mobile\Platform;
  * `App\Icons\*` (which only exists after a developer has run
  * `php artisan native-ui:generate-icons`) or any other concrete catalog.
  * They implement the same marker interfaces that real generated enums
- * use, so the trait's `instanceof SFSymbol` / `instanceof MaterialSymbol`
+ * use, so the trait's `instanceof IosSymbol` / `instanceof AndroidSymbol`
  * checks behave identically.
  */
-enum SF: string implements SFSymbol
+enum Ios: string implements IosSymbol
 {
-    case BellSlash       = 'bell.slash';
+    case BellSlash        = 'bell.slash';
     case SquareAndArrowUp = 'square.and.arrow.up';
-    case Trash           = 'trash';
+    case Trash            = 'trash';
 }
 
-enum Material: string implements MaterialSymbol
+enum Android: string implements AndroidSymbol
 {
     public function variant(): string { return 'filled'; }
     case Delete           = 'delete';
     case NotificationsOff = 'notifications_off';
 }
 
-enum MaterialOutlined: string implements MaterialSymbol
+enum AndroidOutlined: string implements AndroidSymbol
 {
     public function variant(): string { return 'outlined'; }
     case Home             = 'home';
@@ -61,10 +61,10 @@ it('resolves a shared name on both platforms', function () {
     expect($bag->resolvedMaterialVariant())->toBeNull();
 });
 
-it('picks the SF override on iOS and the Material override on Android', function () {
+it('picks the iOS override on iOS and the Android override on Android', function () {
     $bag = (new IconBag())->icon(
-        sf: SF::BellSlash,
-        material: Material::NotificationsOff,
+        ios: Ios::BellSlash,
+        android: Android::NotificationsOff,
     );
 
     Platform::set('ios');
@@ -76,7 +76,7 @@ it('picks the SF override on iOS and the Material override on Android', function
 });
 
 it('falls back to the shared name when only one platform override is set', function () {
-    $bag = (new IconBag())->icon('share', sf: SF::SquareAndArrowUp);
+    $bag = (new IconBag())->icon('share', ios: Ios::SquareAndArrowUp);
 
     Platform::set('ios');
     expect($bag->resolvedIcon())->toBe('square.and.arrow.up');
@@ -85,8 +85,8 @@ it('falls back to the shared name when only one platform override is set', funct
     expect($bag->resolvedIcon())->toBe('share');
 });
 
-it('emits material_variant=outlined for MaterialOutlined overrides', function () {
-    $bag = (new IconBag())->icon(material: MaterialOutlined::Home);
+it('emits material_variant=outlined for AndroidOutlined overrides', function () {
+    $bag = (new IconBag())->icon(android: AndroidOutlined::Home);
 
     Platform::set('android');
     expect($bag->resolvedIcon())->toBe('home');
@@ -98,8 +98,8 @@ it('emits material_variant=outlined for MaterialOutlined overrides', function ()
 
 it('accepts raw strings as platform overrides for new symbols not yet in the enum', function () {
     $bag = (new IconBag())->icon(
-        sf: 'newly.released.symbol',
-        material: 'newly_released_symbol',
+        ios: 'newly.released.symbol',
+        android: 'newly_released_symbol',
     );
 
     Platform::set('ios');
@@ -125,7 +125,7 @@ it('returns null when no slot is set', function () {
 
 it('falls back to the shared name when platform is unknown (test / web preview)', function () {
     Platform::set(null);
-    $bag = (new IconBag())->icon('save', sf: SF::BellSlash);
+    $bag = (new IconBag())->icon('save', ios: Ios::BellSlash);
 
     // No platform → no override applies → shared name is the safe default.
     expect($bag->resolvedIcon())->toBe('save');
@@ -135,8 +135,8 @@ it('falls back to the shared name when platform is unknown (test / web preview)'
 it('overrides earlier values when icon() is called multiple times', function () {
     $bag = (new IconBag())
         ->icon('save')
-        ->icon(sf: SF::Trash)
-        ->icon('delete', material: Material::Delete);
+        ->icon(ios: Ios::Trash)
+        ->icon('delete', android: Android::Delete);
 
     Platform::set('ios');
     expect($bag->resolvedIcon())->toBe('trash');
@@ -151,7 +151,7 @@ it('NavAction emits the iOS-resolved icon and no material_variant on iOS', funct
     Platform::set('ios');
 
     $element = \Native\Mobile\Edge\Layouts\Builders\NavAction::make('mute')
-        ->icon(sf: SF::BellSlash, material: Material::NotificationsOff)
+        ->icon(ios: Ios::BellSlash, android: Android::NotificationsOff)
         ->toElement();
 
     $props = $element->getResolvedProps(new \Native\Mobile\Edge\CallbackRegistry());
@@ -163,7 +163,7 @@ it('NavAction emits the Android-resolved icon and material_variant on Android', 
     Platform::set('android');
 
     $element = \Native\Mobile\Edge\Layouts\Builders\NavAction::make('mute')
-        ->icon(sf: SF::BellSlash, material: MaterialOutlined::NotificationsOff)
+        ->icon(ios: Ios::BellSlash, android: AndroidOutlined::NotificationsOff)
         ->toElement();
 
     $props = $element->getResolvedProps(new \Native\Mobile\Edge\CallbackRegistry());

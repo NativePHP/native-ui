@@ -4,9 +4,9 @@ namespace Nativephp\NativeUi\Elements;
 
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
+use Native\Mobile\Icon\AndroidSymbol;
 use Native\Mobile\Icon\IconResolver;
-use Native\Mobile\Icon\MaterialSymbol;
-use Native\Mobile\Icon\SFSymbol;
+use Native\Mobile\Icon\IosSymbol;
 
 class Icon extends Element
 {
@@ -15,8 +15,8 @@ class Icon extends Element
     protected array $iconProps = [];
 
     private ?string $shared = null;
-    private SFSymbol|string|null $sfOverride = null;
-    private MaterialSymbol|string|null $materialOverride = null;
+    private IosSymbol|string|null $iosOverride = null;
+    private AndroidSymbol|string|null $androidOverride = null;
 
     public static function make(string $name = ''): static
     {
@@ -43,23 +43,23 @@ class Icon extends Element
     }
 
     /**
-     * Set the icon. Mirrors the `(name, sf, material)` shape used by
+     * Set the icon. Mirrors the `(name, ios, android)` shape used by
      * `HasPlatformIcon`-bearing builders — the Icon element doesn't mix
      * in the trait directly because its public setter is `name()`
      * (matching the `<native:icon name="…">` blade attr) rather than
      * `icon()`.
      *
      *   <native:icon name="home" />
-     *   Icon::make()->name(sf: SF::House, material: Material::Home)
+     *   Icon::make()->name(ios: Ios::House, android: Android::Home)
      */
     public function name(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        if ($name !== null)     { $this->shared = $name; }
-        if ($sf !== null)       { $this->sfOverride = $sf; }
-        if ($material !== null) { $this->materialOverride = $material; }
+        if ($name !== null)    { $this->shared = $name; }
+        if ($ios !== null)     { $this->iosOverride = $ios; }
+        if ($android !== null) { $this->androidOverride = $android; }
 
         return $this;
     }
@@ -89,7 +89,7 @@ class Icon extends Element
     {
         $props = $this->iconProps;
 
-        $resolved = IconResolver::resolve($this->shared, $this->sfOverride, $this->materialOverride);
+        $resolved = IconResolver::resolve($this->shared, $this->iosOverride, $this->androidOverride);
         if ($resolved['icon'] !== null) {
             $props['name'] = $resolved['icon'];
             if ($resolved['variant'] !== null) {

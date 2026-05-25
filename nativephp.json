@@ -345,14 +345,6 @@
             "self_closing": true
         },
         {
-            "type": "card",
-            "element": "Nativephp\\NativeUi\\Elements\\Card",
-            "blade": "Nativephp\\NativeUi\\Components\\Card",
-            "android_renderer": "com.nativephp.plugins.native_ui.ui.CardRenderer",
-            "ios_renderer": "NativeUICardRenderer",
-            "self_closing": false
-        },
-        {
             "type": "chip",
             "element": "Nativephp\\NativeUi\\Elements\\Chip",
             "blade": "Nativephp\\NativeUi\\Components\\Chip",
@@ -406,14 +398,6 @@
             "blade": "Nativephp\\NativeUi\\Components\\Carousel",
             "android_renderer": "com.nativephp.plugins.native_ui.ui.CarouselRenderer",
             "ios_renderer": "NativeUICarouselRenderer",
-            "self_closing": false
-        },
-        {
-            "type": "screen",
-            "element": "Nativephp\\NativeUi\\Elements\\Screen",
-            "blade": "Nativephp\\NativeUi\\Components\\Screen",
-            "android_renderer": "com.nativephp.plugins.native_ui.ui.ScreenRenderer",
-            "ios_renderer": "NativeUIScreenRenderer",
             "self_closing": false
         }
     ],

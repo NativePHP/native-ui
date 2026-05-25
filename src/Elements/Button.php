@@ -5,9 +5,9 @@ namespace Nativephp\NativeUi\Elements;
 use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 use Native\Mobile\Edge\Layouts\Builders\NavAction;
+use Native\Mobile\Icon\AndroidSymbol;
 use Native\Mobile\Icon\IconResolver;
-use Native\Mobile\Icon\MaterialSymbol;
-use Native\Mobile\Icon\SFSymbol;
+use Native\Mobile\Icon\IosSymbol;
 
 /**
  * Native button.
@@ -127,7 +127,7 @@ class Button extends Element
     }
 
     /**
-     * Leading icon. Resolved per-platform — pass `sf:` and/or `material:`
+     * Leading icon. Resolved per-platform — pass `ios:` and/or `android:`
      * for cross-platform parity. Stored as `leading_icon` to match the
      * interned prop key table (NPUI_KEY_LEADING_ICON = 37); the optional
      * `leading_icon_variant` companion ('filled' / 'outlined') tells the
@@ -135,10 +135,10 @@ class Button extends Element
      */
     public function icon(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        $r = IconResolver::resolve($name, $sf, $material);
+        $r = IconResolver::resolve($name, $ios, $android);
         if ($r['icon'] !== null) {
             $this->buttonProps['leading_icon'] = $r['icon'];
             if ($r['variant'] !== null) {
@@ -151,10 +151,10 @@ class Button extends Element
 
     public function iconTrailing(
         ?string $name = null,
-        SFSymbol|string|null $sf = null,
-        MaterialSymbol|string|null $material = null,
+        IosSymbol|string|null $ios = null,
+        AndroidSymbol|string|null $android = null,
     ): static {
-        $r = IconResolver::resolve($name, $sf, $material);
+        $r = IconResolver::resolve($name, $ios, $android);
         if ($r['icon'] !== null) {
             $this->buttonProps['trailing_icon'] = $r['icon'];
             if ($r['variant'] !== null) {

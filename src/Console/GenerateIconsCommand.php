@@ -5,8 +5,8 @@ namespace Nativephp\NativeUi\Console;
 use Illuminate\Console\Command;
 
 /**
- * Regenerate the icon enums (`App\Icons\SF`, `App\Icons\Material`,
- * `App\Icons\MaterialOutlined`) from the JSON snapshots that ship with
+ * Regenerate the icon enums (`App\Icons\Ios`, `App\Icons\Android`,
+ * `App\Icons\AndroidOutlined`) from the JSON snapshots that ship with
  * the native-ui plugin.
  *
  *   php artisan native-ui:generate-icons                 # regenerate from local snapshots
@@ -34,7 +34,7 @@ class GenerateIconsCommand extends Command
         {--output= : Override output directory (default: app/Icons)}
         {--namespace= : Override generated namespace (default: App\\Icons)}';
 
-    protected $description = 'Generate SF / Material / MaterialOutlined icon enums into your app';
+    protected $description = 'Generate Ios / Android / AndroidOutlined icon enums into your app';
 
     private const MATERIAL_URL = 'https://fonts.google.com/metadata/icons';
 
@@ -57,11 +57,11 @@ class GenerateIconsCommand extends Command
         $material = $this->loadSymbols($iconsDir.'/material-icons.json');
 
         $this->writeEnum(
-            file: $outputDir.'/SF.php',
+            file: $outputDir.'/Ios.php',
             namespace: $namespace,
-            class: 'SF',
-            interface: 'SFSymbol',
-            interfaceFqn: 'Native\\Mobile\\Icon\\SFSymbol',
+            class: 'Ios',
+            interface: 'IosSymbol',
+            interfaceFqn: 'Native\\Mobile\\Icon\\IosSymbol',
             cases: $this->buildCases($sf, fn ($n) => $this->sfCaseName($n)),
             variant: null,
             blurb: 'SF Symbols (iOS).',
@@ -69,28 +69,28 @@ class GenerateIconsCommand extends Command
 
         $materialCases = $this->buildCases($material, fn ($n) => $this->materialCaseName($n));
         $this->writeEnum(
-            file: $outputDir.'/Material.php',
+            file: $outputDir.'/Android.php',
             namespace: $namespace,
-            class: 'Material',
-            interface: 'MaterialSymbol',
-            interfaceFqn: 'Native\\Mobile\\Icon\\MaterialSymbol',
+            class: 'Android',
+            interface: 'AndroidSymbol',
+            interfaceFqn: 'Native\\Mobile\\Icon\\AndroidSymbol',
             cases: $materialCases,
             variant: 'filled',
             blurb: 'Material Icons — Filled variant (Android default).',
         );
         $this->writeEnum(
-            file: $outputDir.'/MaterialOutlined.php',
+            file: $outputDir.'/AndroidOutlined.php',
             namespace: $namespace,
-            class: 'MaterialOutlined',
-            interface: 'MaterialSymbol',
-            interfaceFqn: 'Native\\Mobile\\Icon\\MaterialSymbol',
+            class: 'AndroidOutlined',
+            interface: 'AndroidSymbol',
+            interfaceFqn: 'Native\\Mobile\\Icon\\AndroidSymbol',
             cases: $materialCases,
             variant: 'outlined',
             blurb: 'Material Icons — Outlined variant.',
         );
 
         $this->info(sprintf(
-            'Generated SF (%d cases) + Material (%d cases) + MaterialOutlined (%d cases).',
+            'Generated Ios (%d cases) + Android (%d cases) + AndroidOutlined (%d cases).',
             count($sf),
             count($material),
             count($material),

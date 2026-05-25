@@ -22,6 +22,16 @@ class NativeUIServiceProvider extends ServiceProvider
             __DIR__.'/../config/native-ui.php' => config_path('native-ui.php'),
         ], 'native-ui-config');
 
+        // Default page layout (`<x-layouts.app>`). Devs run
+        // `php artisan vendor:publish --tag=native-ui-layouts` to drop the
+        // scaffold into their resources/views/components/ tree and edit
+        // freely. Multiple archetypes (feed/detail/etc.) can be added by
+        // copying app.blade.php to neighboring files.
+        $this->publishes([
+            __DIR__.'/../resources/stubs/views/components/layouts/app.blade.php'
+                => resource_path('views/components/layouts/app.blade.php'),
+        ], 'native-ui-layouts');
+
         // Load the merged config into the runtime Theme store. Consumers can
         // override with Theme::merge([...]) from their own service provider
         // after parent::boot().

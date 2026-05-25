@@ -36,9 +36,10 @@ class Chip extends Element
 
     public function applyAttributes(array $attrs): void
     {
-        // Default to capsule radius so the outer wrapper clips bg paint to
-        // the chip's actual rounded shape — see Card.php for the full
-        // rationale.
+        // Default to capsule radius so the outer wrapper's bg paint and
+        // ClipRadiusModifier align with the chip's rounded shape (otherwise
+        // `bg-*` colors leak out at the corners). User `rounded-*` classes
+        // still override via applyStyle.
         $this->borderRadius(9999);
 
         if (isset($attrs['label'])) { $this->label($attrs['label']); }
