@@ -33,6 +33,8 @@ struct NativeUITextInputCore: View {
         let serverValue   = p.getString("value")
         let secure        = p.getBool("secure")
         let multiline     = p.getBool("multiline")
+        let autoGrow      = p.getBool("auto_grow")
+        let minLines      = p.getInt("min_lines")
         let maxLength     = p.getInt("max_length")
         let maxLines      = p.getInt("max_lines")
         let disabled      = p.getBool("disabled")
@@ -54,7 +56,7 @@ struct NativeUITextInputCore: View {
                     .focused($isFocused)
             } else if multiline {
                 TextField(placeholder, text: $text, axis: .vertical)
-                    .lineLimit(maxLines > 0 ? 1...maxLines : 1...5)
+                    .lineLimit(resolvedLineRange(minLines: minLines, maxLines: maxLines))
                     .foregroundColor(contentColor)
                     .focused($isFocused)
             } else {
@@ -64,6 +66,7 @@ struct NativeUITextInputCore: View {
             }
         }
         .font(.system(size: textSize))
+        .modifier(AutoGrowingInputModifier(enabled: multiline && autoGrow))
         .tint(tintColor)
         .keyboardType(keyboard)
         .disabled(disabled || readOnly)
@@ -152,6 +155,25 @@ struct NativeUITextInputCore: View {
             NativeElementBridge.sendTextChangeEvent(onChangeCb, nodeId: node.id, text: value)
         }
     }
+}
+
+private struct AutoGrowingInputModifier: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.fixedSize(horizontal: false, vertical: true)
+        } else {
+            content
+        }
+    }
+}
+
+private func resolvedLineRange(minLines: Int, maxLines: Int) -> ClosedRange<Int> {
+    let lowerBound = max(minLines, 1)
+    let upperBound = max(maxLines > 0 ? maxLines : 5, lowerBound)
+
+    return lowerBound...upperBound
 }
 
 /// Keyboard resolution — accepts string hints ("email", "number", etc.) that
