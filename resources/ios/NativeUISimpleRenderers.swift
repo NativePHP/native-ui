@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct NativeUIPressableRenderer: View {
     let node: NativeUINode
@@ -121,46 +122,105 @@ struct NativeUIImageRenderer: View {
         let fit = p.getInt("fit")
         let tintArgb = p.getColor("tint_color", default: 0)
         let contentMode = resolveContentMode(fit)
+        let cornerRadius = CGFloat(node.style?.borderRadius ?? 0)
 
-        if let url = URL(string: src), !src.isEmpty {
-            // The Color.clear-overlay-clipped pattern. With just
-            // `image.resizable().aspectRatio(.fill).clipped()`, the
-            // AsyncImage on real devices doesn't reliably honor the
-            // outer `.frame(...)` set by NodeLayoutModifier — a
-            // higher-resolution decoded source reports an intrinsic
-            // size larger than the frame, the proposal-clamping path
-            // diverges between simulator and device, and the image
-            // ends up painting beyond its declared frame onto sibling
-            // views below. Wrapping in `Color.clear.overlay { ... }`
-            // forces the outer view to take exactly the proposed
-            // frame; `.clipped()` then clips the overlay (the image)
-            // to those bounds. Same behavior on simulator and device.
+        if contentMode == .fill {
+            // Cover / fill (object-cover, object-fill): the image fills its
+            // frame and may overflow. With just
+            // `image.resizable().aspectRatio(.fill).clipped()`, a higher-res
+            // decoded source reports an intrinsic size larger than the frame,
+            // the proposal-clamping path diverges between simulator and
+            // device, and the image paints beyond its declared frame onto
+            // siblings. Wrapping in `Color.clear.overlay { ... }` pins the
+            // outer view to exactly the proposed frame; `.clipped()` then
+            // crops the overflow. NOTE: this needs a definite height — supply
+            // one via `h-*` or `aspect-*`, since Color.clear has no intrinsic
+            // size and collapses in an unbounded (scroll-view) main axis.
             Color.clear
-                .overlay(
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            let img = image
-                                .resizable()
-                                .aspectRatio(contentMode: contentMode)
-                            if tintArgb != 0 {
-                                img.foregroundStyle(Color(argb: tintArgb))
-                            } else {
-                                img
-                            }
-                        case .failure:
-                            Color.clear
-                        case .empty:
-                            ProgressView()
-                        @unknown default:
-                            Color.clear
-                        }
-                    }
-                )
+                .overlay(imageContent(src: src, contentMode: contentMode, tintArgb: tintArgb, cornerRadius: cornerRadius))
                 .clipped()
+        } else {
+            // Fit (default / object-contain / scale-down / none): the image
+            // is letterboxed and never overflows, so render it directly.
+            // Without an explicit height the resizable + `.aspectRatio(.fit)`
+            // image self-sizes to its source's aspect ratio — i.e. a bare
+            // `<image class="w-full">` lays out at its natural ratio like an
+            // HTML <img>. Within a definite frame it just letterboxes.
+            imageContent(src: src, contentMode: contentMode, tintArgb: tintArgb, cornerRadius: cornerRadius)
+        }
+    }
+
+    @ViewBuilder
+    private func imageContent(src: String, contentMode: ContentMode, tintArgb: Int, cornerRadius: CGFloat) -> some View {
+        if src.isEmpty {
+            Color.clear
+        } else if let path = Self.localFilePath(for: src) {
+            // Local device file — camera capture, gallery selection, etc.
+            // `AsyncImage`/`URLSession` can't load `file://` or bare
+            // filesystem paths, so decode directly with UIImage. Handles
+            // HEIC/HEIF transparently (UIImage decodes them natively).
+            if let uiImage = UIImage(contentsOfFile: path) {
+                tinted(Image(uiImage: uiImage), contentMode: contentMode, tintArgb: tintArgb, cornerRadius: cornerRadius)
+            } else {
+                Color.clear
+            }
+        } else if let url = URL(string: src) {
+            // Remote URL (http/https) — load asynchronously.
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    tinted(image, contentMode: contentMode, tintArgb: tintArgb, cornerRadius: cornerRadius)
+                case .failure:
+                    Color.clear
+                case .empty:
+                    ProgressView()
+                @unknown default:
+                    Color.clear
+                }
+            }
         } else {
             Color.clear
         }
+    }
+
+    @ViewBuilder
+    private func tinted(_ image: Image, contentMode: ContentMode, tintArgb: Int, cornerRadius: CGFloat) -> some View {
+        let img = image
+            .resizable()
+            .aspectRatio(contentMode: contentMode)
+        let styled = Group {
+            if tintArgb != 0 {
+                img.foregroundStyle(Color(argb: tintArgb))
+            } else {
+                img
+            }
+        }
+
+        // `.fill` (cover/fill) spans the whole frame, so the frame-level
+        // rounded clip from NodeStyleModifier already rounds the visible
+        // pixels. `.fit` (contain/scale-down/none) letterboxes the image
+        // inside the frame, leaving the frame's rounded corners out in the
+        // transparent margin — so round the fitted image itself. Mirrors
+        // ClipRadiusModifier (RoundedRectangle; rounded-full → 9999 clamps
+        // to a capsule).
+        if contentMode == .fit && cornerRadius > 0 {
+            styled.clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        } else {
+            styled
+        }
+    }
+
+    /// Resolves `src` to a local filesystem path when it points at an
+    /// on-device file (`file://…` URL or an absolute `/…` path), or nil
+    /// when it's a remote URL that should go through AsyncImage.
+    private static func localFilePath(for src: String) -> String? {
+        if src.hasPrefix("file://") {
+            return URL(string: src)?.path ?? String(src.dropFirst("file://".count))
+        }
+        if src.hasPrefix("/") {
+            return src
+        }
+        return nil
     }
 
     private func resolveContentMode(_ fit: Int) -> ContentMode {
