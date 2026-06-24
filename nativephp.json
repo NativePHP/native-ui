@@ -399,6 +399,14 @@
             "android_renderer": "com.nativephp.plugins.native_ui.ui.CarouselRenderer",
             "ios_renderer": "NativeUICarouselRenderer",
             "self_closing": false
+        },
+        {
+            "type": "native_drawer",
+            "element": "Nativephp\\NativeUi\\Elements\\NativeDrawer",
+            "blade": "Nativephp\\NativeUi\\Components\\NativeDrawer",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.EmptyRenderer",
+            "ios_renderer": "NativeUIEmptyRenderer",
+            "self_closing": false
         }
     ],
     "bridge_functions": [
@@ -417,6 +425,7 @@
     ],
     "android": {
         "min_version": 26,
+        "init_function": "com.nativephp.plugins.native_ui.registerNativeUIChrome",
         "dependencies": {
             "implementation": [
                 "io.coil-kt.coil3:coil-compose:3.1.0",
@@ -427,6 +436,7 @@
         }
     },
     "ios": {
+        "init_function": "registerNativeUIChrome",
         "dependencies": {
             "swift_packages": [],
             "pods": []
