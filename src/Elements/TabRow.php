@@ -6,7 +6,7 @@ use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
 /**
- * TabRow — horizontal segmented selector. Holds `<native:tab>` children; the
+ * TabRow — horizontal segmented selector. Holds `<tab>` children; the
  * row owns the selected-index state.
  *
  * Accepts `native:model="activeTab"` where `$activeTab` is an int property.

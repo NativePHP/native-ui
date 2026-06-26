@@ -6,12 +6,12 @@ use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
 /**
- * RadioGroup — single-choice container holding `<native:radio>` children.
+ * RadioGroup — single-choice container holding `<radio>` children.
  *
  * The group owns the selection; children declare their own `radioValue` +
  * label. Changing the selection fires one onChange with the new value.
  *
- * Model 3: colors from theme. Use `<native:pressable>` for custom visuals.
+ * Model 3: colors from theme. Use `<pressable>` for custom visuals.
  */
 class RadioGroup extends Element
 {

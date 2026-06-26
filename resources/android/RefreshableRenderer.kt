@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
  *     the user sees the spinner even when PHP handlers complete fast;
  *     the next tree publish typically lands within that window.
  *
- * Children should NOT include their own `<native:scroll-view>` — this
+ * Children should NOT include their own `<scroll-view>` — this
  * element IS the scrolling container.
  */
 @OptIn(ExperimentalMaterial3Api::class)

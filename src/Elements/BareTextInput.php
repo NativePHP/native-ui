@@ -9,7 +9,7 @@ namespace Nativephp\NativeUi\Elements;
  *
  * Intended for places where the surrounding container provides the
  * visual chrome — chat input pills, search bars, inline editors, etc.
- * Pair with a `<native:row class="glass rounded-full">` wrapper to get
+ * Pair with a `<row class="glass rounded-full">` wrapper to get
  * the iMessage / WhatsApp pill aesthetic.
  *
  * Inherits all behaviour (value sync via `native:model`, echo
@@ -49,7 +49,7 @@ class BareTextInput extends BaseTextInput
 
     public function color(string $color): static
     {
-        // Use the same prop name (`color`) as `<native:text>` so the
+        // Use the same prop name (`color`) as `<text>` so the
         // collector's `buildDarkProps` automatically maps `dark.color`
         // to `dark_color` for free — `class="text-slate-700 dark:text-slate-300"`
         // gives a working light/dark pair without any custom plumbing.
@@ -66,11 +66,11 @@ class BareTextInput extends BaseTextInput
      * `elevation`, `glass`) and padding all flow through normally,
      * letting callers style the input directly:
      *
-     *   <native:bare-text-input
+     *   <bare-text-input
      *       class="flex-1 glass rounded-full px-4 py-2 dark:text-slate-700"
      *       placeholder="Message" native:model="draft" />
      *
-     * No wrapping `<native:row>` needed.
+     * No wrapping `<row>` needed.
      */
     public function getStyle(): array
     {

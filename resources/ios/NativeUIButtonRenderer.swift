@@ -30,12 +30,12 @@ import SwiftUI
 /// variant-driven tint as the foreground color.
 ///
 /// The variant's tint flows through both glass styles, so
-/// `<native:button class="glass:prominent" variant="destructive">` reads as a
+/// `<button class="glass:prominent" variant="destructive">` reads as a
 /// destructive-tinted prominent glass button on iOS 26+.
 ///
 /// All colors come from the `\.nativeUITheme` environment. No per-instance
 /// color/radius/shadow overrides are honored — that's intentional (plan doc
-/// Model 3). For full visual control, use `<native:pressable>`.
+/// Model 3). For full visual control, use `<pressable>`.
 struct NativeUIButtonRenderer: View {
     let node: NativeUINode
     @ObservedObject private var themeStore = NativeUITheme.shared

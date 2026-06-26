@@ -10,7 +10,7 @@ use Native\Mobile\Edge\Element;
  * driven by `visible`; `@dismiss` fires on drag-down or tap-outside.
  *
  * Model 3: container colors from theme. No per-instance `backgroundColor`
- * override — wrap content in `<native:column class="bg-...">` if a
+ * override — wrap content in `<column class="bg-...">` if a
  * non-standard surface is truly needed, but prefer the theme.
  */
 class BottomSheet extends Element

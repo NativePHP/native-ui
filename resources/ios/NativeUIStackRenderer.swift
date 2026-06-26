@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Custom Layout for `<native:stack>` — z-layers children centered within
+/// Custom Layout for `<stack>` — z-layers children centered within
 /// the stack's bounds at their natural (or explicitly fill) sizes.
 ///
 /// Why not a plain `ZStack`? `ZStack` proposes its own bounds to each
@@ -8,7 +8,7 @@ import SwiftUI
 /// (the default for nodes that don't set an explicit width) will inflate
 /// its frame to fill the stack. Combined with the modifier's
 /// `alignment: .topLeading`, that pushes the actual content (e.g. an
-/// `<native:icon>` glyph) to the leading edge — even though ZStack's own
+/// `<icon>` glyph) to the leading edge — even though ZStack's own
 /// alignment is `.center`. The visible symptom is "icon-on-the-left"
 /// inside any stack that mixes a small intrinsic-sized child with a
 /// larger sibling.

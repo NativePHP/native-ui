@@ -7,7 +7,7 @@ use Native\Mobile\Edge\Element;
 
 /**
  * Circular activity indicator (spinner). Always indeterminate — use
- * `<native:progress-bar :value="..."/>` for determinate progress.
+ * `<progress-bar :value="..."/>` for determinate progress.
  *
  * Model 3: `theme.primary` tint. No per-instance color overrides.
  * Size: sm | md (default) | lg.

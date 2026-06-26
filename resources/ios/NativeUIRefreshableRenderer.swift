@@ -14,7 +14,7 @@ import SwiftUI
 ///     until our `await Task.sleep(800ms)` completes, giving PHP time
 ///     to handle the event and publish a new tree.
 ///
-/// Children should NOT include their own `<native:scroll-view>` — this
+/// Children should NOT include their own `<scroll-view>` — this
 /// element IS the scrolling container.
 struct NativeUIRefreshableRenderer: View {
     let node: NativeUINode

@@ -28,7 +28,7 @@ struct NativeUIScrollViewRenderer: View {
             // image / canvas). For multiple children we layer them in a
             // ZStack pinned via `.fixedSize` and accept that NavigationStack
             // may wobble on the vertical axis — author can wrap in a
-            // single `<native:stack>` child as a workaround.
+            // single `<stack>` child as a workaround.
             ScrollView([.horizontal, .vertical], showsIndicators: showsIndicators) {
                 if node.children.count == 1, let only = node.children.first {
                     NodeView(node: only).equatable()

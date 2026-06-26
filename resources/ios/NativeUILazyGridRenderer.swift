@@ -5,7 +5,7 @@ import SwiftUI
 /// Children are laid out lazily — SwiftUI only materializes the rows
 /// currently in (or about to enter) the viewport, so this scales to
 /// thousands of cells without paying for them at first paint. Use it in
-/// place of `<native:scroll-view>` wrapping a manually-chunked row grid
+/// place of `<scroll-view>` wrapping a manually-chunked row grid
 /// whenever the cell count is large enough to matter.
 struct NativeUILazyGridRenderer: View {
     let node: NativeUINode

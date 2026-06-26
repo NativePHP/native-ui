@@ -4,9 +4,9 @@
     Drop your screen content inside an `<x-layouts.app>` tag:
 
         <x-layouts.app safe-area="top" scrollable>
-            <native:column class="p-5 gap-4">
+            <column class="p-5 gap-4">
                 ...page content...
-            </native:column>
+            </column>
         </x-layouts.app>
 
     Tweak this file freely — it's yours. Copy it to `layouts/feed.blade.php`,
@@ -40,13 +40,13 @@
 @endphp
 
 @if ($scrollAxis)
-    <native:scroll-view axis="{{ $scrollAxis }}" class="w-full h-full bg-theme-background">
-        <native:column class="w-full {{ $safeAreaClass }}">
+    <scroll-view axis="{{ $scrollAxis }}" class="w-full h-full bg-theme-background">
+        <column class="w-full {{ $safeAreaClass }}">
             {{ $slot }}
-        </native:column>
-    </native:scroll-view>
+        </column>
+    </scroll-view>
 @else
-    <native:column class="w-full h-full bg-theme-background {{ $safeAreaClass }}">
+    <column class="w-full h-full bg-theme-background {{ $safeAreaClass }}">
         {{ $slot }}
-    </native:column>
+    </column>
 @endif

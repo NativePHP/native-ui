@@ -14,7 +14,7 @@ use Native\Mobile\Icon\IosSymbol;
  *
  * API shape follows Model 3 — NO per-instance color / font overrides. All
  * colors, corner radii, and typography come from the theme. For fully custom
- * input styling, drop to `<native:pressable>` wrapping a plain HTML-like form.
+ * input styling, drop to `<pressable>` wrapping a plain HTML-like form.
  *
  * Allowed per-instance:
  *   - `value`, `placeholder`, `label`, `supporting`  (content)

@@ -46,10 +46,10 @@ class Icon extends Element
      * Set the icon. Mirrors the `(name, ios, android)` shape used by
      * `HasPlatformIcon`-bearing builders — the Icon element doesn't mix
      * in the trait directly because its public setter is `name()`
-     * (matching the `<native:icon name="…">` blade attr) rather than
+     * (matching the `<icon name="…">` blade attr) rather than
      * `icon()`.
      *
-     *   <native:icon name="home" />
+     *   <icon name="home" />
      *   Icon::make()->name(ios: Ios::House, android: Android::Home)
      */
     public function name(

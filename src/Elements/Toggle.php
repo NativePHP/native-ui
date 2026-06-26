@@ -11,7 +11,7 @@ use Native\Mobile\Edge\Element;
  *
  * Model 3: no per-instance color overrides. Active track / thumb colors come
  * from `theme.primary` / `theme.on-primary`. For custom visuals, drop to
- * `<native:pressable>` with a custom drawing.
+ * `<pressable>` with a custom drawing.
  *
  * Honors `native:model`. `sync_mode` is accepted for API consistency with
  * the other stateful components, though for a discrete control the distinction

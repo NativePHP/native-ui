@@ -29,7 +29,7 @@ use Native\Mobile\Icon\IosSymbol;
  * Per Model 3 customization (theme-only), there is intentionally NO per-instance
  * color, background, border, radius, shadow, font-size, or font-weight. All
  * visual styling comes from the theme (`Nativephp\NativeUi\Theme`). For full
- * visual control, drop to `<native:pressable>` with your own content.
+ * visual control, drop to `<pressable>` with your own content.
  */
 class Button extends Element
 {

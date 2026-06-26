@@ -7,7 +7,7 @@ use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
 /**
- * Tab — child of `<native:tab-row>`. Declares a label + optional leading icon.
+ * Tab — child of `<tab-row>`. Declares a label + optional leading icon.
  * Selection state is owned by the parent row (see [TabRow]).
  */
 class Tab extends Element

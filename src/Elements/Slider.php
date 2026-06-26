@@ -10,7 +10,7 @@ use Native\Mobile\Edge\Element;
  *
  * Model 3: no per-instance color/track overrides. Colors come from theme
  * tokens (`primary` for the active track + thumb). For fully custom visuals,
- * drop to `<native:pressable>` wrapping a custom drawing.
+ * drop to `<pressable>` wrapping a custom drawing.
  *
  * Honors `native:model` with live / blur / debounce modifiers. Default is
  * `live` — every drag tick fires a change event. `blur` collapses to one

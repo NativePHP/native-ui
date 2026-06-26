@@ -12,7 +12,7 @@ use Native\Mobile\Edge\Element;
  * Android: renders as an M3 `ExposedDropdownMenuBox` with an outlined trigger.
  *
  * Model 3: colors/borders from theme tokens. For custom visuals, drop to
- * `<native:pressable>` wrapping your own list UI.
+ * `<pressable>` wrapping your own list UI.
  */
 class Select extends Element
 {

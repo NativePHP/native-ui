@@ -12,7 +12,7 @@ import SwiftUI
 ///
 /// All chrome colors resolve from `NativeUITheme.shared`. Per-instance color
 /// overrides are intentionally not supported (Model 3 — drop to
-/// `<native:pressable>` for fully custom input visuals).
+/// `<pressable>` for fully custom input visuals).
 struct NativeUIOutlinedTextInputRenderer: View {
     let node: NativeUINode
 

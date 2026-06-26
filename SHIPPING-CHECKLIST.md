@@ -91,7 +91,7 @@ Web devs reach for these without thinking. Each should resolve to a sensible nat
 ### 0.8 Callbacks / events
 - [ ] `@press`, `@change`, `@submit`, `@open`, `@close` consistently named
 - [ ] Callbacks survive hot-reload
-- [ ] Long-press / double-tap / swipe API documented (`<native:gesture-area>`)
+- [ ] Long-press / double-tap / swipe API documented (`<gesture-area>`)
 
 ### 0.9 Icon system
 - [ ] `IconResolver` resolves `name=` cross-platform
@@ -119,7 +119,7 @@ Web devs reach for these without thinking. Each should resolve to a sensible nat
 
 Engine primitives live in `mobile-air/src/Edge/Elements/` (not the plugin), but every demo composes them. Plugin components like `Screen` and `Card` belong in this phase too.
 
-### 1.1 `<native:row>`  (engine)
+### 1.1 `<row>`  (engine)
 - [ ] Template items
 - [ ] `gap-*` between children
 - [ ] `items-*` cross-axis alignment
@@ -128,12 +128,12 @@ Engine primitives live in `mobile-air/src/Edge/Elements/` (not the plugin), but 
 - [ ] Wrap behavior (or document: no wrap, use grid)
 - [ ] Docs: `mobile/3/edge-components/row.md`
 
-### 1.2 `<native:column>`  (engine)
+### 1.2 `<column>`  (engine)
 - [ ] Template items
 - [ ] Same gap / align / justify / flex-1 coverage
 - [ ] Docs: `column.md`
 
-### 1.3 `<native:stack>`  (engine)
+### 1.3 `<stack>`  (engine)
 - [ ] Template items
 - [ ] Z-stacks children, last-wins on top
 - [ ] `items-*` / `justify-*` position the whole stack within itself
@@ -141,7 +141,7 @@ Engine primitives live in `mobile-air/src/Edge/Elements/` (not the plugin), but 
 - [ ] iOS centering fix verified (see memory: `feedback_stack_in_flex_cell`)
 - [ ] Docs: `stack.md`
 
-### 1.4 `<native:scroll-view>`  (engine)
+### 1.4 `<scroll-view>`  (engine)
 - [ ] Template items
 - [ ] `axis=` vertical / horizontal / both
 - [ ] Content sizing respects intrinsic height
@@ -151,28 +151,28 @@ Engine primitives live in `mobile-air/src/Edge/Elements/` (not the plugin), but 
 - [ ] Inside `safe-area` screens — no double padding
 - [ ] Docs: `scroll-view.md`
 
-### 1.5 `<native:refreshable>`  (engine)
+### 1.5 `<refreshable>`  (engine)
 - [ ] Template items
 - [ ] `@refresh` callback fires on pull-to-refresh
 - [ ] Refreshing state programmatic (start/stop from PHP)
 - [ ] Works inside both NativeList and ScrollView
 - [ ] Docs: add page (none currently in mobile/3)
 
-### 1.6 `<native:gesture-area>`  (engine)
+### 1.6 `<gesture-area>`  (engine)
 - [ ] Template items
 - [ ] `@press`, long-press, double-tap, drag callbacks
 - [ ] SharedValue integration (see memory: `project_animation_phase_summary`)
 - [ ] Compose translateX/translateY in px not dp (see memory: `feedback_compose_dp_px`)
 - [ ] Docs: add page
 
-### 1.7 `<native:lazy-grid>`  (engine)
+### 1.7 `<lazy-grid>`  (engine)
 - [ ] Template items
 - [ ] Column count
 - [ ] Item template
 - [ ] PHP→wire O(N) cost — see memory: `project_lazy_grid_datasource` (template+items+bindings refactor)
 - [ ] Docs: add page
 
-### 1.8 `<native:spacer>` / `<native:divider>` (engine)
+### 1.8 `<spacer>` / `<divider>` (engine)
 - [ ] Template items (visual primitives)
 - [ ] Divider color follows theme
 - [ ] Docs: `spacer.md`, `divider.md`
@@ -191,15 +191,15 @@ Usage:
 
 ```blade
 <x-layouts.app safe-area="top" scrollable>
-    <native:column class="p-5 gap-4">
+    <column class="p-5 gap-4">
         ...page content...
-    </native:column>
+    </column>
 </x-layouts.app>
 ```
 
 Rationale: Screen was anemic (zero useful props), 48/49 demo files routed around it, and chrome (title/back/nav) already lives in the route-group nav layouts. A Laravel layout component carries the page-body concerns (safe area, scroll, background) in a way web devs already know. Per-screen status-bar style is a separate concern — see [[swiftui_renderer_learnings]] for the deferred view-level implementation.
 
-Future work: when status-bar style lands, model it as a self-closing leaf element (`<native:status-bar style="light" />`) so it composes without coupling to the layout.
+Future work: when status-bar style lands, model it as a self-closing leaf element (`<status-bar style="light" />`) so it composes without coupling to the layout.
 
 ### 1.10 ~~Card~~ — REMOVED
 
@@ -207,16 +207,16 @@ Card was deleted in Phase 1. The recommended pattern is a styled column:
 
 ```blade
 {{-- filled --}}
-<native:column class="w-full p-4 gap-1 bg-theme-surface-variant rounded-2xl"> ... </native:column>
+<column class="w-full p-4 gap-1 bg-theme-surface-variant rounded-2xl"> ... </column>
 
 {{-- outlined --}}
-<native:column class="w-full p-4 gap-1 bg-theme-surface rounded-2xl border border-theme-outline"> ... </native:column>
+<column class="w-full p-4 gap-1 bg-theme-surface rounded-2xl border border-theme-outline"> ... </column>
 
 {{-- elevated --}}
-<native:column class="w-full p-4 gap-1 bg-theme-surface rounded-2xl shadow"> ... </native:column>
+<column class="w-full p-4 gap-1 bg-theme-surface rounded-2xl shadow"> ... </column>
 
 {{-- tappable --}}
-<native:pressable @press="…"> <native:column class="..."> ... </native:column> </native:pressable>
+<pressable @press="…"> <column class="..."> ... </column> </pressable>
 ```
 
 Rationale: a Card component fights the "Tailwind classes only" principle (memory `feedback_tailwind_only`) by adding lockdown semantics that surprise web devs. The column pattern is what RN ecosystems (NativeWind, gluestack) use anyway.
@@ -245,7 +245,7 @@ Rationale: a Card component fights the "Tailwind classes only" principle (memory
 - [ ] Equal-width children
 - [ ] Docs: `button-group.md`
 
-### 2.3 `<native:pressable>`  (engine)
+### 2.3 `<pressable>`  (engine)
 - [ ] Template items
 - [ ] When-to-use-over-Button doc
 - [ ] Press feedback (opacity / scale) configurable
@@ -448,13 +448,13 @@ Rationale: a Card component fights the "Tailwind classes only" principle (memory
 - [ ] Variant prop (filled/outlined/rounded/sharp)
 - [ ] Docs: `icon.md` / `icons.md`
 
-### 8.2 `<native:text>`  (engine)
+### 8.2 `<text>`  (engine)
 - [ ] All Tailwind text classes (size, weight, color, leading, tracking, transform, decoration, alignment, truncate, line-clamp)
 - [ ] Selectable
 - [ ] Accessibility traits (heading, emphasis)
 - [ ] Docs: `text.md`
 
-### 8.3 `<native:image>`  (engine)
+### 8.3 `<image>`  (engine)
 - [ ] fit modes (cover/contain/fill/scaleDown/none)
 - [ ] placeholder
 - [ ] error fallback
@@ -462,7 +462,7 @@ Rationale: a Card component fights the "Tailwind classes only" principle (memory
 - [ ] local asset references
 - [ ] Docs: `image.md`
 
-### 8.4 `<native:canvas>` / `<native:shapes>`  (engine)
+### 8.4 `<canvas>` / `<shapes>`  (engine)
 - [ ] Template items
 - [ ] Skia integration
 - [ ] Docs: `canvas.md`, `shapes.md`

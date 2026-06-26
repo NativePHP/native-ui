@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// SwiftUI RadioGroup — vertical stack of `<native:radio>` children with
+/// SwiftUI RadioGroup — vertical stack of `<radio>` children with
 /// single-selection state owned by the group.
 ///
 /// Echo-prevention (plan K), theme-sourced colors (Model 3).

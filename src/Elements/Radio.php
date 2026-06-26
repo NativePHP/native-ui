@@ -6,7 +6,7 @@ use Native\Mobile\Edge\CallbackRegistry;
 use Native\Mobile\Edge\Element;
 
 /**
- * Radio — child of `<native:radio-group>`. Declares a value + optional label.
+ * Radio — child of `<radio-group>`. Declares a value + optional label.
  * Selection state is owned by the parent group.
  *
  * Model 3: colors from theme.
