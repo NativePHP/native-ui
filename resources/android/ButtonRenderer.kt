@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
@@ -45,7 +44,7 @@ import com.nativephp.plugins.native_ui.NativeUITokens
  *
  * All colors come from [LocalNativeUITheme]. No per-instance color/radius/shadow
  * overrides are honored — that's intentional (plan doc Model 3). For full visual
- * control, use `<native:pressable>`.
+ * control, use `<pressable>`.
  */
 object ButtonRenderer {
     @Composable
@@ -111,8 +110,13 @@ object ButtonRenderer {
                     enabled = enabled,
                     modifier = buttonModifier,
                     contentPadding = metrics.contentPadding,
+                    // Colors come from the theme config (native-ui.php), matching
+                    // iOS which uses `theme.secondary` + `theme.onSecondary`. The
+                    // tonal alpha softens the fill a touch vs a fully-saturated
+                    // solid (what read as "too saturated") while staying dark
+                    // enough for the `onSecondary` label to read.
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = theme.secondary,
+                        containerColor = theme.secondary.copy(alpha = 0.7f),
                         contentColor = theme.onSecondary,
                     ),
                     content = { content() },
@@ -160,7 +164,7 @@ object ButtonRenderer {
             // menu can position itself relative to the button's bounds.
             Box {
                 buttonByVariant()
-                DropdownMenu(
+                ExpressiveMenu(
                     expanded = menuExpanded,
                     onDismissRequest = { menuExpanded = false },
                 ) {
@@ -199,8 +203,11 @@ object ButtonRenderer {
             textSize = theme.fontLg,
         )
         else -> SizeMetrics(
-            minHeight = 40.dp,
-            contentPadding = ButtonDefaults.ContentPadding,
+            // Match iOS (16h / 8v, content-driven height) instead of Material's
+            // chunky ButtonDefaults.ContentPadding (24h) + 40dp min, which made
+            // Android md buttons noticeably wider and taller than iOS.
+            minHeight = 36.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             iconSize = 18.dp,
             textSize = theme.fontMd,
         )

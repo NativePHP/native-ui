@@ -210,6 +210,22 @@ fun NativeUITokens.toMaterialColorScheme(isDark: Boolean = false): ColorScheme {
         error            = destructive,
         onError          = onDestructive,
         surfaceTint      = primary,
+        // M3's "surface container" tonal family. These back DropdownMenu,
+        // NavigationBar/TabRow, sheets, and the watcher's loading indicator.
+        // Left unmapped they keep lightColorScheme()'s baseline (a pinkish
+        // neutral), which read as off-theme. Fold them onto the configured
+        // surface tokens: the lower tiers track `surface`, the elevated tiers
+        // track `surfaceVariant`, so anchored chrome stays on-palette.
+        surfaceContainerLowest  = surface,
+        surfaceContainerLow     = surface,
+        surfaceContainer        = surface,
+        surfaceContainerHigh    = surfaceVariant,
+        surfaceContainerHighest = surfaceVariant,
+        surfaceBright           = surface,
+        surfaceDim              = surfaceVariant,
+        inverseSurface          = onSurface,
+        inverseOnSurface        = surface,
+        inversePrimary          = primary,
     )
 }
 

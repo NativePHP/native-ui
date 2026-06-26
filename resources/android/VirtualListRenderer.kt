@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.coroutines.FlowPreview::class)
+
 package com.nativephp.plugins.native_ui.ui
 
 import androidx.compose.foundation.background

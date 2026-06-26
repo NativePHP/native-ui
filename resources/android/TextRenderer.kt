@@ -4,7 +4,10 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -33,7 +36,19 @@ object TextRenderer {
             fontWeight = fontWeight,
             textAlign = textAlign,
             maxLines = if (maxLines > 0) maxLines else Int.MAX_VALUE,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            // Android adds extra "font padding" above/below glyphs by default,
+            // which shifts text within its box — so it doesn't vertically center
+            // against icons (e.g. the X engagement row) and reads looser than
+            // iOS. Disable it and trim line-height padding so text hugs its
+            // glyphs like iOS.
+            style = TextStyle(
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
+            )
         )
     }
 }
