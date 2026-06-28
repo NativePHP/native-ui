@@ -7,9 +7,10 @@ struct NativeUITextRenderer: View {
 
     var body: some View {
         let p = node.props
-        let text = p.getString("text")
+        let text = applyTransform(p.getString("text"), p.getInt("text_transform"))
         let fontSize = p.getFloat("font_size", default: 16)
         let fontWeight = resolveFontWeight(p.getInt("font_weight"))
+        let fontDesign = resolveFontDesign(p.getInt("font_family"))
         let lightArgb = p.getColor("color", default: 0xFF000000)
         let darkArgb  = p.getColor("dark_color", default: 0)
         // Pick the dark hex when system is dark AND the theme class supplied
@@ -19,10 +20,27 @@ struct NativeUITextRenderer: View {
         let color: Int = (colorScheme == .dark && darkArgb != 0) ? darkArgb : lightArgb
         let textAlign = resolveTextAlign(p.getInt("text_align"))
         let maxLines = p.getInt("max_lines")
+        let isItalic = p.getInt("font_style") == 1
+        let isUnderline = p.getInt("underline") == 1
+        let isStrikethrough = p.getInt("line_through") == 1
+        let letterSpacingEm = p.getFloat("letter_spacing", default: 0)
 
         if !text.isEmpty {
-            Text(text)
-                .font(.system(size: CGFloat(fontSize), weight: fontWeight))
+            // Style the `Text` itself (italic/underline/strikethrough on Text are
+            // iOS 13+, keeping us below the iOS 16 View-level variants). Kerning
+            // is iOS 16+, so it's guarded.
+            let styledText: Text = {
+                var t = Text(text).font(.system(size: CGFloat(fontSize), weight: fontWeight, design: fontDesign))
+                if isItalic { t = t.italic() }
+                if isUnderline { t = t.underline() }
+                if isStrikethrough { t = t.strikethrough() }
+                if letterSpacingEm != 0, #available(iOS 16.0, *) {
+                    t = t.kerning(CGFloat(letterSpacingEm) * CGFloat(fontSize))
+                }
+                return t
+            }()
+
+            styledText
                 .foregroundColor(Color(argb: color))
                 .multilineTextAlignment(textAlign)
                 .lineLimit(maxLines > 0 ? maxLines : nil)
@@ -62,6 +80,24 @@ struct NativeUITextRenderer: View {
         case 1: return .center
         case 2: return .trailing
         default: return .leading
+        }
+    }
+
+    private func resolveFontDesign(_ family: Int) -> Font.Design {
+        switch family {
+        case 1: return .serif
+        case 2: return .monospaced
+        default: return .default
+        }
+    }
+
+    /// Text transform: 1 = uppercase, 2 = lowercase, 3 = capitalize, else none.
+    private func applyTransform(_ s: String, _ transform: Int) -> String {
+        switch transform {
+        case 1: return s.uppercased()
+        case 2: return s.lowercased()
+        case 3: return s.capitalized
+        default: return s
         }
     }
 
