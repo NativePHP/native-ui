@@ -7,6 +7,7 @@ use Native\Mobile\Edge\Element;
 use Native\Mobile\Icon\AndroidSymbol;
 use Native\Mobile\Icon\IconResolver;
 use Native\Mobile\Icon\IosSymbol;
+use Nativephp\NativeUi\Elements\Concerns\ConfiguresTextInputBehavior;
 
 /**
  * Shared base for the text input variants (`outlined-text-input`,
@@ -19,7 +20,7 @@ use Native\Mobile\Icon\IosSymbol;
  * Allowed per-instance:
  *   - `value`, `placeholder`, `label`, `supporting`  (content)
  *   - `disabled`, `readOnly`, `error`, `loading`     (state)
- *   - `keyboard`, `secure`, `maxLength`, `multiline`, `maxLines`, `minLines` (behavior)
+ *   - `keyboard`, `secure`, `maxLength`, `multiline`, `autoGrow`, `maxLines`, `minLines` (behavior)
  *   - `prefix`, `suffix`, `leading-icon`, `trailing-icon` (decorations)
  *   - `size`                                          (sm | md | lg)
  *   - `a11y-label`, `a11y-hint`                       (accessibility)
@@ -30,6 +31,8 @@ use Native\Mobile\Icon\IosSymbol;
  */
 abstract class BaseTextInput extends Element
 {
+    use ConfiguresTextInputBehavior;
+
     /** @var array<string, mixed> */
     protected array $inputProps = [];
 
@@ -67,6 +70,9 @@ abstract class BaseTextInput extends Element
             $this->maxLength((int) ($attrs['maxLength'] ?? $attrs['max-length']));
         }
         if (! empty($attrs['multiline'])) { $this->multiline(); }
+        if (! empty($attrs['autoGrow']) || ! empty($attrs['auto-grow'])) {
+            $this->autoGrow();
+        }
         if (isset($attrs['maxLines']) || isset($attrs['max-lines'])) {
             $this->maxLines((int) ($attrs['maxLines'] ?? $attrs['max-lines']));
         }
@@ -162,51 +168,6 @@ abstract class BaseTextInput extends Element
         return $this;
     }
 
-    // ── Behavior ─────────────────────────────────────────────────────────────
-
-    /** Keyboard hint — "text" (default) | "number" | "email" | "phone" | "url" | "decimal" | "password" */
-    public function keyboard(string|int $type): static
-    {
-        $this->inputProps['keyboard'] = $type;
-
-        return $this;
-    }
-
-    public function secure(bool $value = true): static
-    {
-        $this->inputProps['secure'] = $value;
-
-        return $this;
-    }
-
-    public function maxLength(int $length): static
-    {
-        $this->inputProps['max_length'] = $length;
-
-        return $this;
-    }
-
-    public function multiline(bool $value = true): static
-    {
-        $this->inputProps['multiline'] = $value;
-
-        return $this;
-    }
-
-    public function maxLines(int $lines): static
-    {
-        $this->inputProps['max_lines'] = $lines;
-
-        return $this;
-    }
-
-    public function minLines(int $lines): static
-    {
-        $this->inputProps['min_lines'] = $lines;
-
-        return $this;
-    }
-
     // ── Decorations ──────────────────────────────────────────────────────────
 
     public function prefix(string $text): static
@@ -275,32 +236,6 @@ abstract class BaseTextInput extends Element
     public function a11yHint(string $value): static
     {
         $this->inputProps['a11y_hint'] = $value;
-
-        return $this;
-    }
-
-    // ── Sync mode ────────────────────────────────────────────────────────────
-
-    /**
-     * How the native side should dispatch change events back to PHP.
-     *
-     *   'live'     — every keystroke (default, matches `wire:model.live`)
-     *   'blur'     — only when the field loses focus / user submits
-     *   'debounce' — after `debounce_ms` of inactivity
-     *
-     * Typically set indirectly via `native:model.live` / `.blur` / `.debounce.Xms`
-     * in Blade — the precompiler translates those into this prop.
-     */
-    public function syncMode(string $mode): static
-    {
-        $this->inputProps['sync_mode'] = $mode;
-
-        return $this;
-    }
-
-    public function debounceMs(int $ms): static
-    {
-        $this->inputProps['debounce_ms'] = $ms;
 
         return $this;
     }

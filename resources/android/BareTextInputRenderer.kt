@@ -96,7 +96,9 @@ object BareTextInputRenderer {
                     else -> theme.primary
                 }
             ),
-            singleLine = !props.multiline,
+            singleLine = props.singleLine,
+            minLines = if (props.multiline || props.autoGrow) props.minLines else 1,
+            maxLines = if (props.multiline || props.autoGrow) props.maxLines else 1,
             decorationBox = { innerTextField ->
                 if (text.isEmpty() && props.placeholder.isNotEmpty()) {
                     Text(

@@ -45,6 +45,7 @@ internal data class TextInputProps(
     val trailingIcon: String,
     val secure: Boolean,
     val multiline: Boolean,
+    val autoGrow: Boolean,
     val maxLines: Int,
     val minLines: Int,
     val maxLength: Int,
@@ -66,7 +67,7 @@ internal data class TextInputProps(
     val enabled: Boolean get() = !disabled && !loading
     val visualTransformation: VisualTransformation
         get() = if (secure) PasswordVisualTransformation() else VisualTransformation.None
-    val singleLine: Boolean get() = !multiline
+    val singleLine: Boolean get() = !multiline && !autoGrow
 
     /** Numeric sp size for the chromeless variant. Tracks token fallbacks. */
     val textSize: Int get() = when (size) {
@@ -103,7 +104,8 @@ internal fun parseTextInputProps(node: NativeUINode): TextInputProps {
         trailingIcon = p.getString("trailing_icon"),
         secure       = p.getBool("secure"),
         multiline    = p.getBool("multiline"),
-        maxLines     = p.getInt("max_lines").let { if (it > 0) it else if (p.getBool("multiline")) 5 else 1 },
+        autoGrow     = p.getBool("auto_grow"),
+        maxLines     = p.getInt("max_lines").let { if (it > 0) it else if (p.getBool("multiline") || p.getBool("auto_grow")) 5 else 1 },
         minLines     = p.getInt("min_lines").let { if (it > 0) it else 1 },
         maxLength    = p.getInt("max_length"),
         keyboard     = resolveKeyboardType(p.getString("keyboard")),
