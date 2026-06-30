@@ -78,6 +78,9 @@ class ListItem extends Element
         if (isset($attrs['leadingMonogram'])) {
             $this->leadingMonogram($attrs['leadingMonogram'], $attrs['leadingMonogramColor'] ?? null);
         }
+        if (isset($attrs['leadingIconBgColor'])) {
+            $this->leadingIconBackgroundColor($attrs['leadingIconBgColor']);
+        }
         if (isset($attrs['leadingImage'])) {
             $this->leadingImage($attrs['leadingImage']);
         }
@@ -314,6 +317,18 @@ class ListItem extends Element
         return $this;
     }
 
+    /**
+     * Render the leading icon inside a filled circle of this color (with a
+     * white glyph), instead of a bare tinted glyph. Pairs with
+     * `leadingIcon` — gives the "icon tile" look without a monogram.
+     */
+    public function leadingIconBackgroundColor(string $color): static
+    {
+        $this->listItemProps['leading_icon_bg_color'] = $color;
+
+        return $this;
+    }
+
     public function leadingCheckbox(bool $checked = false): static
     {
         $this->listItemProps['leading_type'] = 'checkbox';
@@ -542,9 +557,9 @@ class ListItem extends Element
                 continue;
             }
             $out[] = [
-                'icon'         => $resolved['icon'],
+                'icon' => $resolved['icon'],
                 'icon_variant' => $resolved['variant'] ?? '',
-                'color'        => $badge['color'] ?? '',
+                'color' => $badge['color'] ?? '',
             ];
         }
 
@@ -581,12 +596,12 @@ class ListItem extends Element
             );
 
             $out[] = [
-                'cb'           => $registry->register($action['method']),
-                'label'        => $action['label'] ?? '',
-                'icon'         => $resolved['icon'] ?? '',
+                'cb' => $registry->register($action['method']),
+                'label' => $action['label'] ?? '',
+                'icon' => $resolved['icon'] ?? '',
                 'icon_variant' => $resolved['variant'] ?? '',
-                'tint'         => $action['tint'] ?? '',
-                'role'         => $action['role'] ?? '',
+                'tint' => $action['tint'] ?? '',
+                'role' => $action['role'] ?? '',
             ];
         }
 

@@ -64,6 +64,7 @@ object ListItemRenderer {
         val leadingIcon = p.getString("leading_icon")
         val leadingCheckedInitial = p.getBool("leading_checked")
         val leadingMonogramColor = p.getColor("leading_monogram_color", 0)
+        val leadingIconBgColor = p.getColor("leading_icon_bg_color", 0)
         val onLeadingChangeCb = p.getCallbackId("on_leading_change")
 
         // Trailing content props
@@ -140,6 +141,7 @@ object ListItemRenderer {
                 checkedInitial = leadingCheckedInitial,
                 monogramColor = leadingMonogramColor,
                 iconColor = leadingIconColor,
+                iconBgColor = leadingIconBgColor,
                 onChangeCb = onLeadingChangeCb,
                 nodeId = node.id,
                 disabled = disabled
@@ -181,6 +183,7 @@ object ListItemRenderer {
         checkedInitial: Boolean,
         monogramColor: Int,
         iconColor: Int,
+        iconBgColor: Int,
         onChangeCb: Int,
         nodeId: Int,
         disabled: Boolean
@@ -194,12 +197,28 @@ object ListItemRenderer {
         return {
             when (effectiveType) {
                 "icon" -> {
-                    com.nativephp.mobile.ui.MaterialIcon(
-                        name = effectiveValue,
-                        contentDescription = effectiveValue,
-                        size = 24.dp,
-                        tint = if (iconColor != 0) Color(iconColor) else Color.Unspecified
-                    )
+                    if (iconBgColor != 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color(iconBgColor), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            com.nativephp.mobile.ui.MaterialIcon(
+                                name = effectiveValue,
+                                contentDescription = effectiveValue,
+                                size = 22.dp,
+                                tint = Color.White
+                            )
+                        }
+                    } else {
+                        com.nativephp.mobile.ui.MaterialIcon(
+                            name = effectiveValue,
+                            contentDescription = effectiveValue,
+                            size = 24.dp,
+                            tint = if (iconColor != 0) Color(iconColor) else Color.Unspecified
+                        )
+                    }
                 }
                 "avatar" -> {
                     SubcomposeAsyncImage(

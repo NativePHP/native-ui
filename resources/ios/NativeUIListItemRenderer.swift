@@ -45,6 +45,7 @@ struct NativeUIListItemRenderer: View {
         let leadingValue = p.getString("leading_value")
         let leadingIcon = p.getString("leading_icon")
         let leadingMonogramColor = p.getColor("leading_monogram_color", default: 0)
+        let leadingIconBgColor = p.getColor("leading_icon_bg_color", default: 0)
 
         // Trailing content
         let trailingType = p.getString("trailing_type")
@@ -58,7 +59,8 @@ struct NativeUIListItemRenderer: View {
             buildLeadingContent(
                 type: leadingType.isEmpty ? (leadingIcon.isEmpty ? "" : "icon") : leadingType,
                 value: leadingValue.isEmpty ? leadingIcon : leadingValue,
-                monogramColor: leadingMonogramColor
+                monogramColor: leadingMonogramColor,
+                iconBgColor: leadingIconBgColor
             )
 
             // Text content
@@ -101,12 +103,22 @@ struct NativeUIListItemRenderer: View {
     }
 
     @ViewBuilder
-    private func buildLeadingContent(type: String, value: String, monogramColor: Int) -> some View {
+    private func buildLeadingContent(type: String, value: String, monogramColor: Int, iconBgColor: Int = 0) -> some View {
         switch type {
         case "icon":
-            Image(systemName: getIconForName(value))
-                .frame(width: 24, height: 24)
-                .foregroundColor(.secondary)
+            if iconBgColor != 0 {
+                ZStack {
+                    Circle().fill(Color(argb: iconBgColor))
+                    Image(systemName: getIconForName(value))
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 40, height: 40)
+            } else {
+                Image(systemName: getIconForName(value))
+                    .frame(width: 24, height: 24)
+                    .foregroundColor(.secondary)
+            }
         case "avatar":
             AsyncImage(url: URL(string: value)) { image in
                 image.resizable().scaledToFill()
