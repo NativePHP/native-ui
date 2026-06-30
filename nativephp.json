@@ -361,6 +361,14 @@
             "self_closing": true
         },
         {
+            "type": "list_section",
+            "element": "Nativephp\\NativeUi\\Elements\\ListSection",
+            "blade": "Nativephp\\NativeUi\\Components\\ListSection",
+            "android_renderer": "com.nativephp.plugins.native_ui.ui.EmptyRenderer",
+            "ios_renderer": "NativeUIEmptyRenderer",
+            "self_closing": false
+        },
+        {
             "type": "tab_row",
             "element": "Nativephp\\NativeUi\\Elements\\TabRow",
             "blade": "Nativephp\\NativeUi\\Components\\TabRow",

@@ -34,6 +34,9 @@ class NativeList extends Element
         if (! empty($attrs['separator'])) {
             $this->separator();
         }
+        if (! empty($attrs['plain'])) {
+            $this->plain();
+        }
         if (isset($attrs['on-refresh']) || isset($attrs['onRefresh'])) {
             $this->onRefresh($attrs['on-refresh'] ?? $attrs['onRefresh']);
         }
@@ -59,6 +62,19 @@ class NativeList extends Element
     public function separator(bool $value = true): static
     {
         $this->listProps['separator'] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Force a plain (ungrouped) list style. By default a list containing
+     * {@see ListSection} children adopts the inset-grouped look (rounded
+     * cards on iOS `.insetGrouped` / hand-rolled cards on Android); call
+     * this to keep flat rows with plain sticky section headers instead.
+     */
+    public function plain(bool $value = true): static
+    {
+        $this->listProps['plain'] = $value;
 
         return $this;
     }

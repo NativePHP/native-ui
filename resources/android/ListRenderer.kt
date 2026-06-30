@@ -1,10 +1,12 @@
 package com.nativephp.plugins.native_ui.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -13,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,8 +32,11 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nativephp.mobile.ui.nativerender.NativeElementBridge
@@ -40,7 +46,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object ListRenderer {
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     fun Render(node: NativeUINode, modifier: Modifier) {
         val horizontal = node.props.getBool("horizontal")
@@ -86,31 +92,45 @@ object ListRenderer {
                     }
                 }
             } else {
+                // A list is "sectioned" when any direct child is a
+                // `list_section`. Sectioned lists adopt the inset-grouped
+                // card look by default (mirroring iOS `.insetGrouped`);
+                // `->plain()` keeps flat rows with plain sticky headers.
+                val hasSections = node.children.any { it.type == "list_section" }
+                val grouped = hasSections && !node.props.getBool("plain")
+
                 LazyColumn(modifier = (if (onRefreshCb != 0) Modifier else modifier).then(dismissKeyboardModifier), state = scrollState) {
                     node.children.forEachIndexed { index, child ->
-                        item(key = child.id) {
-                            val legacyDeleteCb = child.props.getCallbackId("on_swipe_delete")
-                            val leading = decodeSwipeActions(child.props.getString("leading_actions_json", ""))
-                            val trailing = decodeSwipeActions(child.props.getString("trailing_actions_json", ""))
-
-                            val effectiveTrailing = if (trailing.isNotEmpty()) trailing
-                                else if (legacyDeleteCb != 0) listOf(SwipeAction(legacyDeleteCb, "Delete", "delete", "", "#DC2626", "destructive"))
-                                else emptyList()
-
-                            if (leading.isNotEmpty() || effectiveTrailing.isNotEmpty()) {
-                                SwipeActionsRow(
-                                    nodeKey = child.id,
-                                    leading = leading,
-                                    trailing = effectiveTrailing,
-                                    onAction = { cb -> NativeElementBridge.sendPressEvent(cb, child.id) }
-                                ) {
-                                    NodeView(node = child)
-                                }
-                            } else {
-                                NodeView(node = child)
+                        if (child.type == "list_section") {
+                            val header = child.props.getString("header", "")
+                            val footer = child.props.getString("footer", "")
+                            if (header.isNotEmpty()) {
+                                stickyHeader(key = "h_${child.id}") { SectionHeader(header) }
                             }
-                            if (separator && index < node.children.size - 1) {
-                                HorizontalDivider(color = Color(0xFFE0E0E0))
+                            child.children.forEachIndexed { i, row ->
+                                item(key = row.id) {
+                                    if (grouped) {
+                                        SectionRow(
+                                            isFirst = i == 0,
+                                            isLast = i == child.children.size - 1,
+                                        ) { ListRow(row) }
+                                    } else {
+                                        ListRow(row)
+                                        if (separator && i < child.children.size - 1) {
+                                            HorizontalDivider(color = Color(0xFFE0E0E0))
+                                        }
+                                    }
+                                }
+                            }
+                            if (footer.isNotEmpty()) {
+                                item(key = "f_${child.id}") { SectionFooter(footer, grouped) }
+                            }
+                        } else {
+                            item(key = child.id) {
+                                ListRow(child)
+                                if (separator && index < node.children.size - 1) {
+                                    HorizontalDivider(color = Color(0xFFE0E0E0))
+                                }
                             }
                         }
                     }
@@ -142,6 +162,110 @@ object ListRenderer {
         } else {
             listContent()
         }
+    }
+}
+
+/**
+ * One list row: the node plus its leading/trailing swipe actions. Shared
+ * by flat rows and section children so the swipe behaviour is identical
+ * in both. The legacy single `on_swipe_delete` callback maps to a single
+ * destructive trailing action when no structured actions are present.
+ */
+@Composable
+private fun ListRow(child: NativeUINode) {
+    val legacyDeleteCb = child.props.getCallbackId("on_swipe_delete")
+    val leading = decodeSwipeActions(child.props.getString("leading_actions_json", ""))
+    val trailing = decodeSwipeActions(child.props.getString("trailing_actions_json", ""))
+
+    val effectiveTrailing = if (trailing.isNotEmpty()) trailing
+        else if (legacyDeleteCb != 0) listOf(SwipeAction(legacyDeleteCb, "Delete", "delete", "", "#DC2626", "destructive"))
+        else emptyList()
+
+    if (leading.isNotEmpty() || effectiveTrailing.isNotEmpty()) {
+        SwipeActionsRow(
+            nodeKey = child.id,
+            leading = leading,
+            trailing = effectiveTrailing,
+            onAction = { cb -> NativeElementBridge.sendPressEvent(cb, child.id) }
+        ) {
+            NodeView(node = child)
+        }
+    } else {
+        NodeView(node = child)
+    }
+}
+
+/**
+ * A section's sticky header — a small uppercase label that pins to the
+ * top while the section's rows scroll beneath it (mirroring SwiftUI's
+ * sticky `Section` header). The opaque background keeps rows from
+ * showing through while pinned.
+ */
+@Composable
+private fun SectionHeader(text: String) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 6.dp)
+    ) {
+        Text(
+            text = text.uppercase(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 0.5.sp,
+        )
+    }
+}
+
+/**
+ * One row inside an inset-grouped section. Rows share a continuous
+ * `surfaceVariant` card (no vertical gaps between LazyColumn items), with
+ * the first row rounding its top corners and the last its bottom corners.
+ * Inset separators sit inside the card between rows — hand-rolling the
+ * look SwiftUI's `.insetGrouped` gives for free.
+ */
+@Composable
+private fun SectionRow(isFirst: Boolean, isLast: Boolean, content: @Composable () -> Unit) {
+    val radius = 12.dp
+    val shape = RoundedCornerShape(
+        topStart = if (isFirst) radius else 0.dp,
+        topEnd = if (isFirst) radius else 0.dp,
+        bottomStart = if (isLast) radius else 0.dp,
+        bottomEnd = if (isLast) radius else 0.dp,
+    )
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            content()
+            if (!isLast) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.padding(start = 16.dp),
+                )
+            }
+        }
+    }
+}
+
+/** A section's optional footer — small muted caption under the group. */
+@Composable
+private fun SectionFooter(text: String, grouped: Boolean) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = if (grouped) 24.dp else 16.dp, end = 16.dp, top = 6.dp, bottom = 12.dp)
+    ) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+        )
     }
 }
 
