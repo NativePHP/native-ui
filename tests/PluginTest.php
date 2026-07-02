@@ -86,7 +86,7 @@ describe('Native Renderers', function () {
     });
 
     it('has iOS Swift renderer', function () {
-        $file = $this->pluginPath . '/resources/ios/ButtonRenderer.swift';
+        $file = $this->pluginPath . '/resources/ios/NativeUIButtonRenderer.swift';
         expect(file_exists($file))->toBeTrue();
 
         $content = file_get_contents($file);
