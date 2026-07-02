@@ -94,6 +94,14 @@ class Theme
             return;
         }
 
+        // Never during test runs: on a dev machine nativephp_call is the
+        // Jump TCP polyfill, and Theme::load() runs at provider boot — with
+        // a live Jump session this would add a real device round-trip (~1s)
+        // to EVERY test's application boot.
+        if (function_exists('app') && app()->bound('env') && app()->runningUnitTests()) {
+            return;
+        }
+
         $payload = json_encode(static::all());
         if ($payload === false) {
             return;
